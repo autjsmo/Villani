@@ -108,7 +108,8 @@ function openModal(promptText = "Nome cantiere") {
   document.getElementById("modalTitle").innerText = promptText;
   modalInput.value = "";
   modalOverlay.classList.remove("hidden");
-  modalInput.focus();
+  // piccolo timeout per dare tempo al browser di mostrare l'overlay
+  setTimeout(() => modalInput.focus(), 100);
 
   return new Promise(resolve => {
     modalResolve = resolve;
