@@ -229,6 +229,17 @@ main{
   background:#f9fbff;
 }
 
+/* TITOLI SEZIONE FRUTTI (Smart / Normali) */
+
+.frutti-section-title{
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  margin:4px 4px 2px;
+}
+
 /* RIGHE FRUTTI */
 
 .frutto-row{
@@ -261,6 +272,12 @@ main{
   justify-content:center;
 }
 
+/* minus rosso quando frutto custom e v==0 */
+.counter-btn.minus.zero{
+  border-color:var(--danger);
+  color:var(--danger);
+}
+
 .counter-value{
   width:40px;
   height:32px;
@@ -284,6 +301,25 @@ main{
   color:#fff;
 }
 
+/* Bottone aggiungi frutto */
+
+.add-fruit-btn{
+  margin-top:4px;
+  padding:6px 10px;
+  border-radius:12px;
+  border:1px dashed var(--primary);
+  background:#eef4ff;
+  color:var(--primary);
+  font-size:13px;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+
+.add-fruit-btn span.plus{
+  font-size:18px;
+}
+
 /* FAB */
 
 .fab{
@@ -303,7 +339,11 @@ main{
   box-shadow:0 4px 14px rgba(0,0,0,0.25);
 }
 
-/* MODAL */
+.fab.hidden{
+  display:none;
+}
+
+/* MODAL (generico) */
 
 .modal{
   position:fixed;
