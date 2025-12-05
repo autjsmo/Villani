@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Villani - Gestione cantieri</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-left">
+      <span class="header-time">Gestione cantieri</span>
+    </div>
+    <div class="header-center">
+      <h1>Villani</h1>
+      <div class="subtitle">Impianti</div>
+    </div>
+    <div class="header-right"></div>
+  </header>
+
+  <main>
+    <!-- Vista elenco cantieri -->
+    <section id="projectsView" class="view">
+      <div class="view-title">Gestione cantieri</div>
+      <div id="projectsList" class="card list"></div>
+    </section>
+
+    <!-- Vista dettaglio cantiere -->
+    <section id="projectDetailView" class="view hidden">
+      <header class="detail-header">
+        <button id="backBtn" class="circle-btn">&larr;</button>
+        <div class="detail-titles">
+          <h2 id="projectNameTitle"></h2>
+          <div id="projectMeta" class="detail-subtitle"></div>
+        </div>
+        <button id="deleteProjectBtn" class="delete-btn">–</button>
+      </header>
+
+      <div class="card">
+        <div id="accordion" class="accordion">
+          <div class="acc-item" data-section="frutti">
+            <button class="acc-toggle">
+              <span>Frutti</span>
+              <span class="chevron">▾</span>
+            </button>
+            <div class="acc-body" id="fruttiBody"></div>
+          </div>
+          <div class="acc-item" data-section="coperchi">
+            <button class="acc-toggle">
+              <span>Coperchi</span>
+              <span class="chevron">▾</span>
+            </button>
+            <div class="acc-body">Nessun elemento ancora.</div>
+          </div>
+          <div class="acc-item" data-section="linee">
+            <button class="acc-toggle">
+              <span>Linee</span>
+              <span class="chevron">▾</span>
+            </button>
+            <div class="acc-body">Nessun elemento ancora.</div>
+          </div>
+          <div class="acc-item" data-section="altro">
+            <button class="acc-toggle">
+              <span>Altro</span>
+              <span class="chevron">▾</span>
+            </button>
+            <div class="acc-body">Nessun elemento ancora.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating + -->
+  <button id="addProjectBtn" class="fab">+</button>
+
+  <!-- Modal semplice per nome cantiere -->
+  <div id="modalOverlay" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="modalTitle">Nuovo cantiere</h3>
+      <input id="modalInput" type="text" placeholder="Nome cantiere" />
+      <div class="modal-actions">
+        <button id="modalCancel" class="btn secondary">Annulla</button>
+        <button id="modalOk" class="btn primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
