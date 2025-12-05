@@ -8,7 +8,7 @@ let state = {
   selectedProjectId: null
 };
 
-// Definizione dei frutti come in screenshot
+// Definizione dei frutti
 const FRUTTI_LIST = [
   "Supporto 503",
   "Supporto 504",
@@ -27,7 +27,6 @@ const FRUTTI_LIST = [
 function saveState() {
   try {
     const json = JSON.stringify(state);
-    // backup prima
     localStorage.setItem(BACKUP_KEY, json);
     localStorage.setItem(STORAGE_KEY, json);
   } catch (e) {
@@ -93,12 +92,13 @@ const modalInput   = document.getElementById("modalInput");
 const modalCancel  = document.getElementById("modalCancel");
 const modalOk      = document.getElementById("modalOk");
 
-const backBtn           = document.getElementById("backBtn");
-const deleteProjectBtn  = document.getElementById("deleteProjectBtn");
 const projectNameTitle  = document.getElementById("projectNameTitle");
 const projectMeta       = document.getElementById("projectMeta");
 const fruttiBody        = document.getElementById("fruttiBody");
 const accordion         = document.getElementById("accordion");
+
+const headerBackBtn     = document.getElementById("headerBackBtn");
+const headerSubLine     = document.getElementById("headerSubLine");
 
 // --- Modal gestione ---
 
@@ -108,7 +108,6 @@ function openModal(promptText = "Nome cantiere") {
   document.getElementById("modalTitle").innerText = promptText;
   modalInput.value = "";
   modalOverlay.classList.remove("hidden");
-  // piccolo timeout per dare tempo al browser di mostrare l'overlay
   setTimeout(() => modalInput.focus(), 100);
 
   return new Promise(resolve => {
@@ -177,33 +176,17 @@ function renderProjectsList() {
       row.appendChild(bar);
       row.appendChild(main);
 
-      const delBtn = document.createElement("button");
-      delBtn.className = "project-delete";
-      delBtn.textContent = "–";
-      delBtn.addEventListener("click", e => {
-        e.stopPropagation();
-        if (confirm(`Eliminare il cantiere "${project.name}"?`)) {
-          state.projects = state.projects.filter(p => p.id !== project.id);
-          if (state.selectedProjectId === project.id) {
-            state.selectedProjectId = null;
-          }
-          saveState();
-          renderProjectsList();
-          showProjectsView();
-        }
-      });
-
       row.addEventListener("click", () => {
         state.selectedProjectId = project.id;
         saveState();
         openProjectDetail();
       });
 
-      row.appendChild(delBtn);
       projectsList.appendChild(row);
     });
 }
 
+// floating +
 addProjectBtn.addEventListener("click", async () => {
   const name = await openModal("Nome nuovo cantiere");
   if (!name) return;
@@ -211,7 +194,6 @@ addProjectBtn.addEventListener("click", async () => {
   const createdAt = nowIso();
   const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
-  // inizializza i frutti a 0
   const fruttiData = {};
   FRUTTI_LIST.forEach(f => { fruttiData[f] = 0; });
 
@@ -232,36 +214,31 @@ addProjectBtn.addEventListener("click", async () => {
   openProjectDetail();
 });
 
-// --- Vista dettaglio cantiere ---
+// --- Navigazione ---
 
 function showProjectsView() {
   projectsView.classList.remove("hidden");
   projectDetailView.classList.add("hidden");
+  headerBackBtn.classList.add("hidden");
+  headerSubLine.textContent = "";
 }
 
 function showProjectDetailView() {
   projectsView.classList.add("hidden");
   projectDetailView.classList.remove("hidden");
+  headerBackBtn.classList.remove("hidden");
+
+  const project = getSelectedProject();
+  headerSubLine.textContent = project ? project.name : "";
 }
 
-backBtn.addEventListener("click", () => {
+headerBackBtn.addEventListener("click", () => {
   state.selectedProjectId = null;
   saveState();
   showProjectsView();
 });
 
-// elimina cantiere dalla vista dettaglio
-deleteProjectBtn.addEventListener("click", () => {
-  const project = getSelectedProject();
-  if (!project) return;
-  if (confirm(`Eliminare il cantiere "${project.name}"?`)) {
-    state.projects = state.projects.filter(p => p.id !== project.id);
-    state.selectedProjectId = null;
-    saveState();
-    renderProjectsList();
-    showProjectsView();
-  }
-});
+// --- Dettaglio cantiere ---
 
 function openProjectDetail() {
   const project = getSelectedProject();
@@ -274,11 +251,20 @@ function openProjectDetail() {
     `Ultima modifica: ${formatDate(project.updatedAt || project.createdAt)}`;
 
   renderFruttiSection(project);
-  initAccordion("frutti"); // apri di default Frutti
+  initAccordion(null); // tutte chiuse
   showProjectDetailView();
 }
 
 // --- Sezione frutti ---
+
+function updateCounterAppearance(valueElement, numericValue) {
+  valueElement.classList.remove("zero","nonzero");
+  if (numericValue > 0) {
+    valueElement.classList.add("nonzero");
+  } else {
+    valueElement.classList.add("zero");
+  }
+}
 
 function renderFruttiSection(project) {
   fruttiBody.innerHTML = "";
@@ -300,7 +286,9 @@ function renderFruttiSection(project) {
 
     const value = document.createElement("div");
     value.className = "counter-value";
-    value.textContent = data[name] ?? 0;
+    const initial = data[name] ?? 0;
+    value.textContent = initial;
+    updateCounterAppearance(value, initial);
 
     const plus = document.createElement("button");
     plus.className = "counter-btn";
@@ -310,6 +298,7 @@ function renderFruttiSection(project) {
       let v = Number(value.textContent) || 0;
       if (v > 0) v--;
       value.textContent = v;
+      updateCounterAppearance(value, v);
       project.data.frutti[name] = v;
       project.updatedAt = nowIso();
       saveState();
@@ -321,6 +310,7 @@ function renderFruttiSection(project) {
       let v = Number(value.textContent) || 0;
       v++;
       value.textContent = v;
+      updateCounterAppearance(value, v);
       project.data.frutti[name] = v;
       project.updatedAt = nowIso();
       saveState();
@@ -338,7 +328,7 @@ function renderFruttiSection(project) {
   });
 }
 
-// --- Accordion: uno aperto alla volta ---
+// --- Accordion: tutte chiuse, una sola aperta alla volta ---
 
 function initAccordion(openSection) {
   const items = accordion.querySelectorAll(".acc-item");
@@ -346,7 +336,7 @@ function initAccordion(openSection) {
     const body = item.querySelector(".acc-body");
     const chevron = item.querySelector(".chevron");
     const section = item.getAttribute("data-section");
-    const open = section === openSection;
+    const open = openSection && section === openSection;
     body.style.display = open ? "block" : "none";
     chevron.textContent = open ? "▴" : "▾";
 
