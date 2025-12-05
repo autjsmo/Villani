@@ -8,12 +8,13 @@
 </head>
 <body>
   <header class="app-header">
-    <div class="header-left"></div>
+    <button id="headerBackBtn" class="header-circle hidden">&larr;</button>
     <div class="header-center">
       <h1>Villani</h1>
       <div class="subtitle">Impianti</div>
+      <div id="headerSubLine" class="subtitle-small"></div>
     </div>
-    <div class="header-right"></div>
+    <div class="header-right-placeholder"></div>
   </header>
 
   <main>
@@ -25,41 +26,39 @@
 
     <!-- Vista dettaglio cantiere -->
     <section id="projectDetailView" class="view hidden">
-      <header class="detail-header">
-        <button id="backBtn" class="circle-btn">&larr;</button>
-        <div class="detail-titles">
+      <div class="detail-header">
+        <div class="detail-main">
           <h2 id="projectNameTitle"></h2>
           <div id="projectMeta" class="detail-subtitle"></div>
         </div>
-        <button id="deleteProjectBtn" class="delete-btn">–</button>
-      </header>
+      </div>
 
-      <div class="card">
+      <div class="card card-flat">
         <div id="accordion" class="accordion">
           <div class="acc-item" data-section="frutti">
             <button class="acc-toggle">
-              <span>Frutti</span>
+              <span class="acc-label">Frutti</span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body" id="fruttiBody"></div>
           </div>
           <div class="acc-item" data-section="coperchi">
             <button class="acc-toggle">
-              <span>Coperchi</span>
+              <span class="acc-label">Coperchi</span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body">Nessun elemento ancora.</div>
           </div>
           <div class="acc-item" data-section="linee">
             <button class="acc-toggle">
-              <span>Linee</span>
+              <span class="acc-label">Linee</span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body">Nessun elemento ancora.</div>
           </div>
           <div class="acc-item" data-section="altro">
             <button class="acc-toggle">
-              <span>Altro</span>
+              <span class="acc-label">Altro</span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body">Nessun elemento ancora.</div>
