@@ -8,18 +8,27 @@ let state = {
   selectedProjectId: null
 };
 
-// Definizione dei frutti
-const FRUTTI_LIST = [
-  "Supporto 503",
-  "Supporto 504",
-  "Supporto 507",
-  "Falsipolo",
-  "Unel",
-  "Bipasso",
-  "10A",
-  "Usb",
-  "Interruttore",
-  "Deviatore"
+// Frutti normali base
+const FRUTTI_BASE = [
+  "Supporto 503","Supporto 504","Supporto 507","Falsipolo",
+  "Unel","Bipasso","10A","Usb",
+  "Interruttore","Deviatore","Invertitore","Pulsante","RJ45","RJ11",
+  "TV Finale","TV Passante","Sali/Scendi","Tirante","Ronzatore","Supporto 502",
+  "Pulsante campanello","Suoneria",
+  "Pateletta 503","Pateletta 504"
+];
+
+// Smart frutti base
+const SMART_BASE = [
+  "Gateway",
+  "Entra/Esci",
+  "Giorno/Notte",
+  "Deviatore",
+  "Tapparella",
+  "Dimmer",
+  "Modulo presa",
+  "Tapparella wireless",
+  "Interruttore wireless"
 ];
 
 // --- Utility salvataggio sicuro ---
@@ -92,6 +101,12 @@ const modalInput   = document.getElementById("modalInput");
 const modalCancel  = document.getElementById("modalCancel");
 const modalOk      = document.getElementById("modalOk");
 
+const fruitModalOverlay = document.getElementById("fruitModalOverlay");
+const fruitModalInput   = document.getElementById("fruitModalInput");
+const fruitModalCancel  = document.getElementById("fruitModalCancel");
+const fruitModalOk      = document.getElementById("fruitModalOk");
+const fruitModalTitle   = document.getElementById("fruitModalTitle");
+
 const projectNameTitle  = document.getElementById("projectNameTitle");
 const projectMeta       = document.getElementById("projectMeta");
 const fruttiBody        = document.getElementById("fruttiBody");
@@ -100,7 +115,7 @@ const accordion         = document.getElementById("accordion");
 const headerBackBtn     = document.getElementById("headerBackBtn");
 const headerSubLine     = document.getElementById("headerSubLine");
 
-// --- Modal gestione ---
+// --- Modal cantiere ---
 
 let modalResolve = null;
 
@@ -109,10 +124,7 @@ function openModal(promptText = "Nome cantiere") {
   modalInput.value = "";
   modalOverlay.classList.remove("hidden");
   setTimeout(() => modalInput.focus(), 100);
-
-  return new Promise(resolve => {
-    modalResolve = resolve;
-  });
+  return new Promise(resolve => { modalResolve = resolve; });
 }
 
 function closeModal(value = null) {
@@ -129,11 +141,47 @@ modalOk.addEventListener("click", () => {
   if (!value) return;
   closeModal(value);
 });
-
 modalInput.addEventListener("keydown", e => {
   if (e.key === "Enter") {
     e.preventDefault();
     modalOk.click();
+  }
+});
+
+// --- Modal aggiungi frutto ---
+
+let fruitModalResolve = null;
+let fruitModalContext = null; // "smart" o "normal"
+
+function openFruitModal(sectionType) {
+  fruitModalContext = sectionType; // "smart" | "normal"
+  fruitModalTitle.textContent =
+    sectionType === "smart" ? "Aggiungi frutto smart" : "Aggiungi frutto";
+  fruitModalInput.value = "";
+  fruitModalOverlay.classList.remove("hidden");
+  setTimeout(() => fruitModalInput.focus(), 100);
+  return new Promise(resolve => { fruitModalResolve = resolve; });
+}
+
+function closeFruitModal(value = null) {
+  fruitModalOverlay.classList.add("hidden");
+  if (fruitModalResolve) {
+    fruitModalResolve({ value, type: fruitModalContext });
+    fruitModalResolve = null;
+    fruitModalContext = null;
+  }
+}
+
+fruitModalCancel.addEventListener("click", () => closeFruitModal(null));
+fruitModalOk.addEventListener("click", () => {
+  const value = fruitModalInput.value.trim();
+  if (!value) return;
+  closeFruitModal(value);
+});
+fruitModalInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    fruitModalOk.click();
   }
 });
 
@@ -186,7 +234,6 @@ function renderProjectsList() {
     });
 }
 
-// floating +
 addProjectBtn.addEventListener("click", async () => {
   const name = await openModal("Nome nuovo cantiere");
   if (!name) return;
@@ -194,8 +241,12 @@ addProjectBtn.addEventListener("click", async () => {
   const createdAt = nowIso();
   const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
+  // inizializza dato struttura
   const fruttiData = {};
-  FRUTTI_LIST.forEach(f => { fruttiData[f] = 0; });
+  FRUTTI_BASE.forEach(f => { fruttiData[f] = 0; });
+
+  const smartData = {};
+  SMART_BASE.forEach(f => { smartData[f] = 0; });
 
   const newProject = {
     id,
@@ -203,15 +254,16 @@ addProjectBtn.addEventListener("click", async () => {
     createdAt,
     updatedAt: createdAt,
     data: {
-      frutti: fruttiData
+      frutti: fruttiData,           // base normali
+      smart: smartData,             // base smart
+      fruttiCustom: {},             // frutti normali aggiunti dall'utente
+      smartCustom: {}               // frutti smart aggiunti dall'utente
     }
   };
 
   state.projects.push(newProject);
-  state.selectedProjectId = id;
   saveState();
   renderProjectsList();
-  openProjectDetail();
 });
 
 // --- Navigazione ---
@@ -221,13 +273,14 @@ function showProjectsView() {
   projectDetailView.classList.add("hidden");
   headerBackBtn.classList.add("hidden");
   headerSubLine.textContent = "";
+  addProjectBtn.classList.remove("hidden");
 }
 
 function showProjectDetailView() {
   projectsView.classList.add("hidden");
   projectDetailView.classList.remove("hidden");
   headerBackBtn.classList.remove("hidden");
-
+  addProjectBtn.classList.add("hidden");
   const project = getSelectedProject();
   headerSubLine.textContent = project ? project.name : "";
 }
@@ -257,75 +310,189 @@ function openProjectDetail() {
 
 // --- Sezione frutti ---
 
-function updateCounterAppearance(valueElement, numericValue) {
+function updateCounterAppearance(valueElement, minusBtn, numericValue, isCustom) {
   valueElement.classList.remove("zero","nonzero");
+  minusBtn.classList.remove("zero");
   if (numericValue > 0) {
     valueElement.classList.add("nonzero");
   } else {
     valueElement.classList.add("zero");
+    if (isCustom) {
+      // solo per frutti custom il "-" diventa rosso a 0
+      minusBtn.classList.add("zero");
+    }
   }
+}
+
+function createFruitRow(project, store, key, labelText, isCustom, sectionType) {
+  const row = document.createElement("div");
+  row.className = "frutto-row";
+
+  const label = document.createElement("div");
+  label.className = "frutto-name";
+  label.textContent = labelText;
+
+  const counterWrap = document.createElement("div");
+  counterWrap.className = "counter";
+
+  const minus = document.createElement("button");
+  minus.className = "counter-btn minus";
+  minus.textContent = "−";
+
+  const value = document.createElement("div");
+  value.className = "counter-value";
+  const initial = store[key] ?? 0;
+  value.textContent = initial;
+
+  const plus = document.createElement("button");
+  plus.className = "counter-btn";
+  plus.textContent = "+";
+
+  updateCounterAppearance(value, minus, initial, isCustom);
+
+  minus.addEventListener("click", () => {
+    let v = Number(value.textContent) || 0;
+    if (v > 0) {
+      v--;
+      value.textContent = v;
+      store[key] = v;
+      project.updatedAt = nowIso();
+      updateCounterAppearance(value, minus, v, isCustom);
+      saveState();
+      projectMeta.textContent =
+        `Ultima modifica: ${formatDate(project.updatedAt)}`;
+    } else {
+      // v == 0 → se frutto custom chiede se vuoi rimuovere,
+      // se frutto base non fa nulla
+      if (!isCustom) {
+        return;
+      }
+      const msg = `Vuoi rimuovere questo frutto?\n"${labelText}"`;
+      if (confirm(msg)) {
+        delete store[key];
+        row.remove();
+        project.updatedAt = nowIso();
+        saveState();
+        projectMeta.textContent =
+          `Ultima modifica: ${formatDate(project.updatedAt)}`;
+      }
+    }
+  });
+
+  plus.addEventListener("click", () => {
+    let v = Number(value.textContent) || 0;
+    v++;
+    value.textContent = v;
+    store[key] = v;
+    project.updatedAt = nowIso();
+    updateCounterAppearance(value, minus, v, isCustom);
+    saveState();
+    projectMeta.textContent =
+      `Ultima modifica: ${formatDate(project.updatedAt)}`;
+  });
+
+  counterWrap.appendChild(minus);
+  counterWrap.appendChild(value);
+  counterWrap.appendChild(plus);
+
+  row.appendChild(label);
+  row.appendChild(counterWrap);
+  return row;
+}
+
+async function handleAddFruit(project, sectionType) {
+  // sectionType: "smart" | "normal"
+  const res = await openFruitModal(sectionType);
+  if (!res || !res.value) return;
+
+  const name = res.value.trim();
+  if (!name) return;
+
+  // scegli store e key
+  let store;
+  if (sectionType === "smart") {
+    project.data.smartCustom = project.data.smartCustom || {};
+    store = project.data.smartCustom;
+  } else {
+    project.data.fruttiCustom = project.data.fruttiCustom || {};
+    store = project.data.fruttiCustom;
+  }
+
+  const key = name;
+  if (store[key] == null) {
+    store[key] = 0;
+  }
+
+  project.updatedAt = nowIso();
+  saveState();
+  renderFruttiSection(project); // ridisegno sezione per mostrare subito il nuovo
+  projectMeta.textContent =
+    `Ultima modifica: ${formatDate(project.updatedAt)}`;
 }
 
 function renderFruttiSection(project) {
   fruttiBody.innerHTML = "";
-  const data = project.data.frutti || {};
-  FRUTTI_LIST.forEach(name => {
-    const row = document.createElement("div");
-    row.className = "frutto-row";
 
-    const label = document.createElement("div");
-    label.className = "frutto-name";
-    label.textContent = name;
+  const data = project.data || {};
+  data.frutti = data.frutti || {};
+  data.smart = data.smart || {};
+  data.fruttiCustom = data.fruttiCustom || {};
+  data.smartCustom = data.smartCustom || {};
 
-    const counterWrap = document.createElement("div");
-    counterWrap.className = "counter";
+  // --- NORMALI ---
+  const normTitle = document.createElement("div");
+  normTitle.className = "frutti-section-title";
+  normTitle.textContent = "Normali";
+  fruttiBody.appendChild(normTitle);
 
-    const minus = document.createElement("button");
-    minus.className = "counter-btn";
-    minus.textContent = "−";
-
-    const value = document.createElement("div");
-    value.className = "counter-value";
-    const initial = data[name] ?? 0;
-    value.textContent = initial;
-    updateCounterAppearance(value, initial);
-
-    const plus = document.createElement("button");
-    plus.className = "counter-btn";
-    plus.textContent = "+";
-
-    minus.addEventListener("click", () => {
-      let v = Number(value.textContent) || 0;
-      if (v > 0) v--;
-      value.textContent = v;
-      updateCounterAppearance(value, v);
-      project.data.frutti[name] = v;
-      project.updatedAt = nowIso();
-      saveState();
-      projectMeta.textContent =
-        `Ultima modifica: ${formatDate(project.updatedAt)}`;
-    });
-
-    plus.addEventListener("click", () => {
-      let v = Number(value.textContent) || 0;
-      v++;
-      value.textContent = v;
-      updateCounterAppearance(value, v);
-      project.data.frutti[name] = v;
-      project.updatedAt = nowIso();
-      saveState();
-      projectMeta.textContent =
-        `Ultima modifica: ${formatDate(project.updatedAt)}`;
-    });
-
-    counterWrap.appendChild(minus);
-    counterWrap.appendChild(value);
-    counterWrap.appendChild(plus);
-
-    row.appendChild(label);
-    row.appendChild(counterWrap);
+  const normAll = { ...data.frutti, ...data.fruttiCustom };
+  Object.keys(normAll).forEach(name => {
+    const isCustom = Object.prototype.hasOwnProperty.call(data.fruttiCustom, name);
+    const row = createFruitRow(
+      project,
+      isCustom ? data.fruttiCustom : data.frutti,
+      name,
+      name,
+      isCustom,
+      "normal"
+    );
     fruttiBody.appendChild(row);
   });
+
+  const addNormBtn = document.createElement("button");
+  addNormBtn.className = "add-fruit-btn";
+  addNormBtn.innerHTML = `<span class="plus">+</span><span>Aggiungi frutto</span>`;
+  addNormBtn.addEventListener("click", () => handleAddFruit(project, "normal"));
+  fruttiBody.appendChild(addNormBtn);
+
+  // separatore
+  fruttiBody.appendChild(document.createElement("hr")).style.border = "none";
+
+  // --- SMART ---
+  const smartTitle = document.createElement("div");
+  smartTitle.className = "frutti-section-title";
+  smartTitle.textContent = "Smart";
+  fruttiBody.appendChild(smartTitle);
+
+  const smartAll = { ...data.smart, ...data.smartCustom };
+  Object.keys(smartAll).forEach(name => {
+    const isCustom = Object.prototype.hasOwnProperty.call(data.smartCustom, name);
+    const row = createFruitRow(
+      project,
+      isCustom ? data.smartCustom : data.smart,
+      name,
+      name,
+      isCustom,
+      "smart"
+    );
+    fruttiBody.appendChild(row);
+  });
+
+  const addSmartBtn = document.createElement("button");
+  addSmartBtn.className = "add-fruit-btn";
+  addSmartBtn.innerHTML = `<span class="plus">+</span><span>Aggiungi frutto Smart</span>`;
+  addSmartBtn.addEventListener("click", () => handleAddFruit(project, "smart"));
+  fruttiBody.appendChild(addSmartBtn);
 }
 
 // --- Accordion: tutte chiuse, una sola aperta alla volta ---
