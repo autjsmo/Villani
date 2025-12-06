@@ -360,29 +360,34 @@ main{
   display:none;
 }
 
+/* Popup più alta tipo foglio che sale */
 .modal-card{
   width:100%;
   max-width:480px;
   background:#fff;
   border-radius:16px 16px 0 0;
-  padding:18px 16px 12px;
+  padding:22px 18px 16px;
   margin-bottom:10px;
+  min-height:40vh;          /* <-- più alta */
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
 }
 
 .modal-card h3{
-  margin:0 0 10px;
+  margin:0 0 14px;
 }
 
 .modal-card input{
   width:100%;
-  padding:10px 12px;
+  padding:12px 14px;
   border-radius:10px;
   border:2px solid #f1b835;
   font-size:15px;
 }
 
 .modal-actions{
-  margin-top:14px;
+  margin-top:18px;
   display:flex;
   justify-content:flex-end;
   gap:8px;
