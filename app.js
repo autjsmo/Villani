@@ -154,7 +154,7 @@ let fruitModalResolve = null;
 let fruitModalContext = null; // "smart" o "normal"
 
 function openFruitModal(sectionType) {
-  fruitModalContext = sectionType; // "smart" | "normal"
+  fruitModalContext = sectionType;
   fruitModalTitle.textContent =
     sectionType === "smart" ? "Aggiungi frutto smart" : "Aggiungi frutto";
   fruitModalInput.value = "";
@@ -224,6 +224,24 @@ function renderProjectsList() {
       row.appendChild(bar);
       row.appendChild(main);
 
+      // pulsante cancella cantiere
+      const delBtn = document.createElement("button");
+      delBtn.className = "project-delete-btn";
+      delBtn.textContent = "−";
+      delBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        if (confirm(`Vuoi eliminare il cantiere "${project.name}"?`)) {
+          state.projects = state.projects.filter(p => p.id !== project.id);
+          if (state.selectedProjectId === project.id) {
+            state.selectedProjectId = null;
+          }
+          saveState();
+          renderProjectsList();
+        }
+      });
+
+      row.appendChild(delBtn);
+
       row.addEventListener("click", () => {
         state.selectedProjectId = project.id;
         saveState();
@@ -241,7 +259,6 @@ addProjectBtn.addEventListener("click", async () => {
   const createdAt = nowIso();
   const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
-  // inizializza dato struttura
   const fruttiData = {};
   FRUTTI_BASE.forEach(f => { fruttiData[f] = 0; });
 
@@ -254,10 +271,10 @@ addProjectBtn.addEventListener("click", async () => {
     createdAt,
     updatedAt: createdAt,
     data: {
-      frutti: fruttiData,           // base normali
-      smart: smartData,             // base smart
-      fruttiCustom: {},             // frutti normali aggiunti dall'utente
-      smartCustom: {}               // frutti smart aggiunti dall'utente
+      frutti: fruttiData,
+      smart: smartData,
+      fruttiCustom: {},
+      smartCustom: {}
     }
   };
 
@@ -318,7 +335,6 @@ function updateCounterAppearance(valueElement, minusBtn, numericValue, isCustom)
   } else {
     valueElement.classList.add("zero");
     if (isCustom) {
-      // solo per frutti custom il "-" diventa rosso a 0
       minusBtn.classList.add("zero");
     }
   }
@@ -362,11 +378,7 @@ function createFruitRow(project, store, key, labelText, isCustom, sectionType) {
       projectMeta.textContent =
         `Ultima modifica: ${formatDate(project.updatedAt)}`;
     } else {
-      // v == 0 → se frutto custom chiede se vuoi rimuovere,
-      // se frutto base non fa nulla
-      if (!isCustom) {
-        return;
-      }
+      if (!isCustom) return;
       const msg = `Vuoi rimuovere questo frutto?\n"${labelText}"`;
       if (confirm(msg)) {
         delete store[key];
@@ -401,14 +413,12 @@ function createFruitRow(project, store, key, labelText, isCustom, sectionType) {
 }
 
 async function handleAddFruit(project, sectionType) {
-  // sectionType: "smart" | "normal"
   const res = await openFruitModal(sectionType);
   if (!res || !res.value) return;
 
   const name = res.value.trim();
   if (!name) return;
 
-  // scegli store e key
   let store;
   if (sectionType === "smart") {
     project.data.smartCustom = project.data.smartCustom || {};
@@ -425,7 +435,7 @@ async function handleAddFruit(project, sectionType) {
 
   project.updatedAt = nowIso();
   saveState();
-  renderFruttiSection(project); // ridisegno sezione per mostrare subito il nuovo
+  renderFruttiSection(project);
   projectMeta.textContent =
     `Ultima modifica: ${formatDate(project.updatedAt)}`;
 }
@@ -465,7 +475,6 @@ function renderFruttiSection(project) {
   addNormBtn.addEventListener("click", () => handleAddFruit(project, "normal"));
   fruttiBody.appendChild(addNormBtn);
 
-  // separatore
   fruttiBody.appendChild(document.createElement("hr")).style.border = "none";
 
   // --- SMART ---
@@ -495,7 +504,7 @@ function renderFruttiSection(project) {
   fruttiBody.appendChild(addSmartBtn);
 }
 
-// --- Accordion: tutte chiuse, una sola aperta alla volta ---
+// --- Accordion: tutte chiuse, una sola aperta alla volta, con animazione ---
 
 function initAccordion(openSection) {
   const items = accordion.querySelectorAll(".acc-item");
@@ -503,9 +512,15 @@ function initAccordion(openSection) {
     const body = item.querySelector(".acc-body");
     const chevron = item.querySelector(".chevron");
     const section = item.getAttribute("data-section");
-    const open = openSection && section === openSection;
-    body.style.display = open ? "block" : "none";
-    chevron.textContent = open ? "▴" : "▾";
+    const shouldOpen = openSection && section === openSection;
+
+    if (shouldOpen) {
+      body.classList.add("open");
+      chevron.textContent = "▴";
+    } else {
+      body.classList.remove("open");
+      chevron.textContent = "▾";
+    }
 
     const btn = item.querySelector(".acc-toggle");
     btn.onclick = () => {
@@ -513,11 +528,16 @@ function initAccordion(openSection) {
         const b = it.querySelector(".acc-body");
         const c = it.querySelector(".chevron");
         if (it === item) {
-          const currentlyOpen = b.style.display !== "none";
-          b.style.display = currentlyOpen ? "none" : "block";
-          c.textContent = currentlyOpen ? "▾" : "▴";
+          const openNow = b.classList.contains("open");
+          if (openNow) {
+            b.classList.remove("open");
+            c.textContent = "▾";
+          } else {
+            b.classList.add("open");
+            c.textContent = "▴";
+          }
         } else {
-          b.style.display = "none";
+          b.classList.remove("open");
           c.textContent = "▾";
         }
       });
