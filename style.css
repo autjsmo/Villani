@@ -140,6 +140,7 @@ main{
   display:flex;
   align-items:center;
   border-bottom:1px solid var(--border);
+  gap:8px;
 }
 
 .project-item:last-child{
@@ -169,6 +170,20 @@ main{
   font-size:11px;
   color:var(--muted);
   margin-top:2px;
+}
+
+/* bottone cancella cantiere */
+.project-delete-btn{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:none;
+  background:#ffe5e5;
+  color:var(--danger);
+  font-size:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 /* DETTAGLIO CANTIERE */
@@ -224,9 +239,21 @@ main{
   color:var(--muted);
 }
 
+/* Corpo con animazione apertura/chiusura */
 .acc-body{
-  padding:8px 12px 12px;
+  padding:0 12px 0;
   background:#f9fbff;
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transition:max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+}
+
+/* stato aperto (aggiunto da JS) */
+.acc-body.open{
+  padding:8px 12px 12px;
+  max-height:800px;
+  opacity:1;
 }
 
 /* TITOLI SEZIONE FRUTTI (Smart / Normali) */
@@ -368,7 +395,7 @@ main{
   border-radius:16px 16px 0 0;
   padding:22px 18px 16px;
   margin-bottom:10px;
-  min-height:40vh;          /* <-- più alta */
+  min-height:40vh;
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
