@@ -4,7 +4,7 @@ const BACKUP_KEY  = "villani_cantieri_backup_v1";
 
 // Stato in memoria
 let state = {
-  projects: [],       // {id, name, createdAt, updatedAt, data:{frutti:{...}}}
+  projects: [],
   selectedProjectId: null
 };
 
@@ -29,6 +29,16 @@ const SMART_BASE = [
   "Modulo presa",
   "Tapparella wireless",
   "Interruttore wireless"
+];
+
+// Coperchi base (esempio come nel tuo screenshot 3)
+const COPERCHI_BASE = [
+  "Coperchio 503",
+  "Coperchio 504",
+  "Coperchio 507",
+  "Tondo piccolo",
+  "Tondo grande",
+  "Telefonico"
 ];
 
 // --- Utility salvataggio sicuro ---
@@ -107,9 +117,17 @@ const fruitModalCancel  = document.getElementById("fruitModalCancel");
 const fruitModalOk      = document.getElementById("fruitModalOk");
 const fruitModalTitle   = document.getElementById("fruitModalTitle");
 
+const derivModalOverlay = document.getElementById("derivModalOverlay");
+const derivValueEl      = document.getElementById("derivValue");
+const derivDownBtn      = document.getElementById("derivDown");
+const derivUpBtn        = document.getElementById("derivUp");
+const derivCancelBtn    = document.getElementById("derivCancel");
+const derivOkBtn        = document.getElementById("derivOk");
+
 const projectNameTitle  = document.getElementById("projectNameTitle");
 const projectMeta       = document.getElementById("projectMeta");
 const fruttiBody        = document.getElementById("fruttiBody");
+const coperchiBody      = document.getElementById("coperchiBody");
 const accordion         = document.getElementById("accordion");
 
 const headerBackBtn     = document.getElementById("headerBackBtn");
@@ -155,8 +173,7 @@ let fruitModalContext = null; // "smart" o "normal"
 
 function openFruitModal(sectionType) {
   fruitModalContext = sectionType;
-  fruitModalTitle.textContent =
-    sectionType === "smart" ? "Aggiungi frutto smart" : "Aggiungi frutto";
+  fruitModalTitle.textContent = "Aggiungi frutto";
   fruitModalInput.value = "";
   fruitModalOverlay.classList.remove("hidden");
   setTimeout(() => fruitModalInput.focus(), 100);
@@ -184,6 +201,45 @@ fruitModalInput.addEventListener("keydown", e => {
     fruitModalOk.click();
   }
 });
+
+// --- Modal Derivazione PT ---
+
+let derivResolve = null;
+let derivCurrent = 4;
+const DERIV_MIN = 4;
+const DERIV_MAX = 10;
+
+function openDerivModal() {
+  derivCurrent = 4;
+  derivValueEl.textContent = String(derivCurrent);
+  derivModalOverlay.classList.remove("hidden");
+  return new Promise(resolve => { derivResolve = resolve; });
+}
+
+function closeDerivModal(value = null) {
+  derivModalOverlay.classList.add("hidden");
+  if (derivResolve) {
+    derivResolve(value);
+    derivResolve = null;
+  }
+}
+
+derivDownBtn.addEventListener("click", () => {
+  if (derivCurrent > DERIV_MIN) {
+    derivCurrent--;
+    derivValueEl.textContent = String(derivCurrent);
+  }
+});
+
+derivUpBtn.addEventListener("click", () => {
+  if (derivCurrent < DERIV_MAX) {
+    derivCurrent++;
+    derivValueEl.textContent = String(derivCurrent);
+  }
+});
+
+derivCancelBtn.addEventListener("click", () => closeDerivModal(null));
+derivOkBtn.addEventListener("click", () => closeDerivModal(derivCurrent));
 
 // --- Vista cantieri ---
 
@@ -224,7 +280,6 @@ function renderProjectsList() {
       row.appendChild(bar);
       row.appendChild(main);
 
-      // pulsante cancella cantiere
       const delBtn = document.createElement("button");
       delBtn.className = "project-delete-btn";
       delBtn.textContent = "−";
@@ -265,6 +320,9 @@ addProjectBtn.addEventListener("click", async () => {
   const smartData = {};
   SMART_BASE.forEach(f => { smartData[f] = 0; });
 
+  const coperchiData = {};
+  COPERCHI_BASE.forEach(c => { coperchiData[c] = 0; });
+
   const newProject = {
     id,
     name,
@@ -274,7 +332,9 @@ addProjectBtn.addEventListener("click", async () => {
       frutti: fruttiData,
       smart: smartData,
       fruttiCustom: {},
-      smartCustom: {}
+      smartCustom: {},
+      coperchi: coperchiData,
+      coperchiDerivazioni: {} // "Derivazione PT X" -> contatore
     }
   };
 
@@ -321,11 +381,12 @@ function openProjectDetail() {
     `Ultima modifica: ${formatDate(project.updatedAt || project.createdAt)}`;
 
   renderFruttiSection(project);
-  initAccordion(null); // tutte chiuse
+  renderCoperchiSection(project);
+  initAccordion(null);
   showProjectDetailView();
 }
 
-// --- Sezione frutti ---
+// --- Helpers contatori ---
 
 function updateCounterAppearance(valueElement, minusBtn, numericValue, isCustom) {
   valueElement.classList.remove("zero","nonzero");
@@ -340,7 +401,7 @@ function updateCounterAppearance(valueElement, minusBtn, numericValue, isCustom)
   }
 }
 
-function createFruitRow(project, store, key, labelText, isCustom, sectionType) {
+function createCounterRow(project, store, key, labelText, isCustom, onAfterChange) {
   const row = document.createElement("div");
   row.className = "frutto-row";
 
@@ -377,9 +438,10 @@ function createFruitRow(project, store, key, labelText, isCustom, sectionType) {
       saveState();
       projectMeta.textContent =
         `Ultima modifica: ${formatDate(project.updatedAt)}`;
+      onAfterChange && onAfterChange(row, v);
     } else {
       if (!isCustom) return;
-      const msg = `Vuoi rimuovere questo frutto?\n"${labelText}"`;
+      const msg = `Vuoi rimuovere questo elemento?\n"${labelText}"`;
       if (confirm(msg)) {
         delete store[key];
         row.remove();
@@ -387,6 +449,7 @@ function createFruitRow(project, store, key, labelText, isCustom, sectionType) {
         saveState();
         projectMeta.textContent =
           `Ultima modifica: ${formatDate(project.updatedAt)}`;
+        onAfterChange && onAfterChange(row, 0, true);
       }
     }
   });
@@ -401,6 +464,7 @@ function createFruitRow(project, store, key, labelText, isCustom, sectionType) {
     saveState();
     projectMeta.textContent =
       `Ultima modifica: ${formatDate(project.updatedAt)}`;
+    onAfterChange && onAfterChange(row, v);
   });
 
   counterWrap.appendChild(minus);
@@ -411,6 +475,8 @@ function createFruitRow(project, store, key, labelText, isCustom, sectionType) {
   row.appendChild(counterWrap);
   return row;
 }
+
+// --- Sezione FRUTTI ---
 
 async function handleAddFruit(project, sectionType) {
   const res = await openFruitModal(sectionType);
@@ -458,13 +524,12 @@ function renderFruttiSection(project) {
   const normAll = { ...data.frutti, ...data.fruttiCustom };
   Object.keys(normAll).forEach(name => {
     const isCustom = Object.prototype.hasOwnProperty.call(data.fruttiCustom, name);
-    const row = createFruitRow(
+    const row = createCounterRow(
       project,
       isCustom ? data.fruttiCustom : data.frutti,
       name,
       name,
-      isCustom,
-      "normal"
+      isCustom
     );
     fruttiBody.appendChild(row);
   });
@@ -486,35 +551,158 @@ function renderFruttiSection(project) {
   const smartAll = { ...data.smart, ...data.smartCustom };
   Object.keys(smartAll).forEach(name => {
     const isCustom = Object.prototype.hasOwnProperty.call(data.smartCustom, name);
-    const row = createFruitRow(
+    const row = createCounterRow(
       project,
       isCustom ? data.smartCustom : data.smart,
       name,
       name,
-      isCustom,
-      "smart"
+      isCustom
     );
     fruttiBody.appendChild(row);
   });
 
   const addSmartBtn = document.createElement("button");
   addSmartBtn.className = "add-fruit-btn";
-  addSmartBtn.innerHTML = `<span class="plus">+</span><span>Aggiungi frutto Smart</span>`;
+  addSmartBtn.innerHTML = `<span class="plus">+</span><span>Aggiungi frutto</span>`;
   addSmartBtn.addEventListener("click", () => handleAddFruit(project, "smart"));
   fruttiBody.appendChild(addSmartBtn);
 }
 
-// --- Accordion: tutte chiuse, una sola aperta alla volta, con animazione ---
+// --- Sezione COPERCHI con Derivazioni PT ---
+
+async function handleAddDerivazione(project) {
+  const val = await openDerivModal();
+  if (!val) return;
+
+  project.data.coperchiDerivazioni = project.data.coperchiDerivazioni || {};
+  const key = `Derivazione PT ${val}`;
+
+  if (!project.data.coperchiDerivazioni[key]) {
+    project.data.coperchiDerivazioni[key] = 1; // come nello screenshot
+  } else {
+    project.data.coperchiDerivazioni[key] += 1;
+  }
+
+  project.updatedAt = nowIso();
+  saveState();
+  renderCoperchiSection(project);
+  projectMeta.textContent =
+    `Ultima modifica: ${formatDate(project.updatedAt)}`;
+}
+
+function renderCoperchiSection(project) {
+  coperchiBody.innerHTML = "";
+
+  const data = project.data || {};
+  data.coperchi = data.coperchi || {};
+  data.coperchiDerivazioni = data.coperchiDerivazioni || {};
+
+  // --- BLOCCO DERIVAZIONI PT ---
+
+  const derivHeader = document.createElement("div");
+  derivHeader.className = "deriv-header";
+
+  const derivTitle = document.createElement("div");
+  derivTitle.className = "deriv-header-title";
+  derivTitle.textContent = "Derivazioni PT";
+
+  const derivAddBtn = document.createElement("button");
+  derivAddBtn.className = "deriv-header-btn";
+  derivAddBtn.textContent = "+";
+  derivAddBtn.addEventListener("click", () => handleAddDerivazione(project));
+
+  derivHeader.appendChild(derivTitle);
+  derivHeader.appendChild(derivAddBtn);
+  coperchiBody.appendChild(derivHeader);
+
+  // Lista derivazioni esistenti
+  Object.keys(data.coperchiDerivazioni).forEach(name => {
+    const isCustom = true; // tutte le derivazioni sono "custom" rispetto alla base
+    const row = createCounterRow(
+      project,
+      data.coperchiDerivazioni,
+      name,
+      name,
+      isCustom
+    );
+    coperchiBody.appendChild(row);
+  });
+
+  coperchiBody.appendChild(document.createElement("hr")).style.border = "none";
+
+  // --- COPERCHI NORMALI BASE ---
+
+  const coperchiTitle = document.createElement("div");
+  coperchiTitle.className = "frutti-section-title";
+  coperchiTitle.textContent = "Coperchi";
+  coperchiBody.appendChild(coperchiTitle);
+
+  Object.keys(data.coperchi).forEach(name => {
+    const row = createCounterRow(
+      project,
+      data.coperchi,
+      name,
+      name,
+      false
+    );
+    coperchiBody.appendChild(row);
+  });
+
+  const addCoperchioBtn = document.createElement("button");
+  addCoperchioBtn.className = "add-fruit-btn";
+  addCoperchioBtn.innerHTML = `<span class="plus">+</span><span>Aggiungi coperchio</span>`;
+  // per ora fa solo aggiunta custom semplice (come frutto normale)
+  addCoperchioBtn.addEventListener("click", async () => {
+    const res = await openFruitModal("coperchio");
+    if (!res || !res.value) return;
+    const name = res.value.trim();
+    if (!name) return;
+    data.coperchi[name] = data.coperchi[name] || 0;
+    project.updatedAt = nowIso();
+    saveState();
+    renderCoperchiSection(project);
+    projectMeta.textContent =
+      `Ultima modifica: ${formatDate(project.updatedAt)}`;
+  });
+
+  coperchiBody.appendChild(addCoperchioBtn);
+}
+
+// --- Accordion: tutte chiuse, una sola aperta alla volta (display) ---
+
+function toggleAccordionItem(targetItem) {
+  const items = accordion.querySelectorAll(".acc-item");
+
+  items.forEach(item => {
+    const body = item.querySelector(".acc-body");
+    const chevron = item.querySelector(".chevron");
+    const isTarget = item === targetItem;
+    const isOpen = body.classList.contains("open");
+
+    if (isTarget) {
+      if (isOpen) {
+        body.classList.remove("open");
+        chevron.textContent = "▾";
+      } else {
+        body.classList.add("open");
+        chevron.textContent = "▴";
+      }
+    } else {
+      body.classList.remove("open");
+      chevron.textContent = "▾";
+    }
+  });
+}
 
 function initAccordion(openSection) {
   const items = accordion.querySelectorAll(".acc-item");
+
   items.forEach(item => {
     const body = item.querySelector(".acc-body");
     const chevron = item.querySelector(".chevron");
     const section = item.getAttribute("data-section");
-    const shouldOpen = openSection && section === openSection;
 
-    if (shouldOpen) {
+    if (openSection && section === openSection) {
       body.classList.add("open");
       chevron.textContent = "▴";
     } else {
@@ -523,25 +711,7 @@ function initAccordion(openSection) {
     }
 
     const btn = item.querySelector(".acc-toggle");
-    btn.onclick = () => {
-      items.forEach(it => {
-        const b = it.querySelector(".acc-body");
-        const c = it.querySelector(".chevron");
-        if (it === item) {
-          const openNow = b.classList.contains("open");
-          if (openNow) {
-            b.classList.remove("open");
-            c.textContent = "▾";
-          } else {
-            b.classList.add("open");
-            c.textContent = "▴";
-          }
-        } else {
-          b.classList.remove("open");
-          c.textContent = "▾";
-        }
-      });
-    };
+    btn.onclick = () => toggleAccordionItem(item);
   });
 }
 
