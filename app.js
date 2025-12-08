@@ -20,25 +20,14 @@ const FRUTTI_BASE = [
 
 // Smart frutti base
 const SMART_BASE = [
-  "Gateway",
-  "Entra/Esci",
-  "Giorno/Notte",
-  "Deviatore",
-  "Tapparella",
-  "Dimmer",
-  "Modulo presa",
-  "Tapparella wireless",
-  "Interruttore wireless"
+  "Gateway","Entra/Esci","Giorno/Notte","Deviatore","Tapparella",
+  "Dimmer","Modulo presa","Tapparella wireless","Interruttore wireless"
 ];
 
 // Coperchi base: da "Coperchio 503" fino a "Telefonico"
 const COPERCHI_BASE = [
-  "Coperchio 503",
-  "Coperchio 504",
-  "Coperchio 507",
-  "Tondo piccolo",
-  "Tondo grande",
-  "Telefonico"
+  "Coperchio 503","Coperchio 504","Coperchio 507",
+  "Tondo piccolo","Tondo grande","Telefonico"
 ];
 
 // --- Utility salvataggio sicuro ---
@@ -79,7 +68,6 @@ function loadState() {
 
 // --- Helpers vari ---
 function nowIso() { return new Date().toISOString(); }
-
 function formatDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -90,7 +78,6 @@ function formatDate(iso) {
   const mi = String(d.getMinutes()).padStart(2,"0");
   return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
 }
-
 function getSelectedProject() {
   return state.projects.find(p => p.id === state.selectedProjectId) || null;
 }
@@ -140,24 +127,56 @@ const accordion         = document.getElementById("accordion");
 const headerBackBtn     = document.getElementById("headerBackBtn");
 const headerSubLine     = document.getElementById("headerSubLine");
 
+// --- VisualViewport controller per modali (no glitch) ---
+function setupViewportController() {
+  const vvp = window.visualViewport;
+  if (!vvp) return { attach: () => {}, detach: () => {} };
+
+  let rafId = null;
+  const overlays = new Set();
+
+  function updatePositionFor(overlayEl) {
+    const card = overlayEl?.querySelector('.modal-card');
+    if (!card) return;
+    const offset = vvp.offsetTop || 0; // px spinti in alto per tastiera/barre
+    const margin = 8;
+    const translate = offset > 0 ? -(offset - margin) : 0;
+    card.style.transform = `translateY(${translate}px)`;
+  }
+
+  function onViewportChange() {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      overlays.forEach(overlayEl => updatePositionFor(overlayEl));
+    });
+  }
+
+  function attach(overlayEl) {
+    overlays.add(overlayEl);
+    updatePositionFor(overlayEl);
+  }
+  function detach(overlayEl) {
+    overlays.delete(overlayEl);
+    const card = overlayEl.querySelector('.modal-card');
+    if (card) card.style.transform = 'translateY(0)';
+  }
+
+  vvp.addEventListener('resize', onViewportChange);
+  vvp.addEventListener('scroll', onViewportChange);
+
+  return { attach, detach };
+}
+const viewportCtl = setupViewportController();
+
 // --- Modal cantiere ---
 let modalResolve = null;
-
-function setModalKeyboardMode(active, overlayEl) {
-  if (!overlayEl) return;
-  if (active) {
-    overlayEl.classList.add("keyboard");
-  } else {
-    overlayEl.classList.remove("keyboard");
-  }
-}
 
 function openModal(promptText = "Nome cantiere") {
   if (!modalOverlay) return null;
   document.getElementById("modalTitle").innerText = promptText;
   modalInput.value = "";
   modalOverlay.classList.remove("hidden");
-  setModalKeyboardMode(false, modalOverlay);
+  viewportCtl.attach(modalOverlay);
   setTimeout(() => modalInput.focus(), 100);
   return new Promise(resolve => { modalResolve = resolve; });
 }
@@ -165,47 +184,43 @@ function openModal(promptText = "Nome cantiere") {
 function closeModal(value = null) {
   if (!modalOverlay) return;
   modalOverlay.classList.add("hidden");
-  setModalKeyboardMode(false, modalOverlay);
+  viewportCtl.detach(modalOverlay);
   if (modalResolve) {
     modalResolve(value);
     modalResolve = null;
   }
 }
 
-if (modalCancel) modalCancel.addEventListener("click", () => closeModal(null));
-if (modalOk) modalOk.addEventListener("click", () => {
+modalCancel?.addEventListener("click", () => closeModal(null));
+modalOk?.addEventListener("click", () => {
   const value = modalInput.value.trim();
   if (!value) return;
   closeModal(value);
 });
-if (modalInput) {
-  modalInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      modalOk.click();
-    }
-  });
-  modalInput.addEventListener("focus", () => setModalKeyboardMode(true, modalOverlay));
-  modalInput.addEventListener("blur",  () => setModalKeyboardMode(false, modalOverlay));
-}
+modalInput?.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    modalOk.click();
+  }
+});
 
 // --- Modal aggiungi frutto/coperchio ---
 let fruitModalResolve = null;
-let fruitModalContext = null; // "smart" o "normal" o "coperchio"
+let fruitModalContext = null; // "smart" | "normal" | "coperchio"
 
 function openFruitModal(sectionType) {
   fruitModalContext = sectionType;
   fruitModalTitle.textContent = sectionType === "coperchio" ? "Aggiungi coperchio" : "Aggiungi frutto";
   fruitModalInput.value = "";
   fruitModalOverlay.classList.remove("hidden");
-  setModalKeyboardMode(false, fruitModalOverlay);
+  viewportCtl.attach(fruitModalOverlay);
   setTimeout(() => fruitModalInput.focus(), 100);
   return new Promise(resolve => { fruitModalResolve = resolve; });
 }
 
 function closeFruitModal(value = null) {
   fruitModalOverlay.classList.add("hidden");
-  setModalKeyboardMode(false, fruitModalOverlay);
+  viewportCtl.detach(fruitModalOverlay);
   if (fruitModalResolve) {
     fruitModalResolve({ value, type: fruitModalContext });
     fruitModalResolve = null;
@@ -213,22 +228,18 @@ function closeFruitModal(value = null) {
   }
 }
 
-if (fruitModalCancel) fruitModalCancel.addEventListener("click", () => closeFruitModal(null));
-if (fruitModalOk) fruitModalOk.addEventListener("click", () => {
+fruitModalCancel?.addEventListener("click", () => closeFruitModal(null));
+fruitModalOk?.addEventListener("click", () => {
   const value = fruitModalInput.value.trim();
   if (!value) return;
   closeFruitModal(value);
 });
-if (fruitModalInput) {
-  fruitModalInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      fruitModalOk.click();
-    }
-  });
-  fruitModalInput.addEventListener("focus", () => setModalKeyboardMode(true, fruitModalOverlay));
-  fruitModalInput.addEventListener("blur",  () => setModalKeyboardMode(false, fruitModalOverlay));
-}
+fruitModalInput?.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    fruitModalOk.click();
+  }
+});
 
 // --- Modal Derivazione PT ---
 let derivResolve = null;
@@ -238,40 +249,35 @@ const DERIV_MAX = 10;
 
 function openDerivModal() {
   derivCurrent = DERIV_MIN;
-  if (derivValueEl) derivValueEl.textContent = String(derivCurrent);
+  derivValueEl && (derivValueEl.textContent = String(derivCurrent));
   derivModalOverlay.classList.remove("hidden");
-  setModalKeyboardMode(false, derivModalOverlay);
+  viewportCtl.attach(derivModalOverlay);
   return new Promise(resolve => { derivResolve = resolve; });
 }
 
 function closeDerivModal(value = null) {
   derivModalOverlay.classList.add("hidden");
-  setModalKeyboardMode(false, derivModalOverlay);
+  viewportCtl.detach(derivModalOverlay);
   if (derivResolve) {
     derivResolve(value);
     derivResolve = null;
   }
 }
 
-if (derivDownBtn) derivDownBtn.addEventListener("click", () => {
+derivDownBtn?.addEventListener("click", () => {
   if (derivCurrent > DERIV_MIN) {
     derivCurrent--;
     derivValueEl.textContent = String(derivCurrent);
   }
 });
-if (derivUpBtn) derivUpBtn.addEventListener("click", () => {
+derivUpBtn?.addEventListener("click", () => {
   if (derivCurrent < DERIV_MAX) {
     derivCurrent++;
     derivValueEl.textContent = String(derivCurrent);
   }
 });
-if (derivCancelBtn) derivCancelBtn.addEventListener("click", () => closeDerivModal(null));
-if (derivOkBtn) derivOkBtn.addEventListener("click", () => closeDerivModal(derivCurrent));
-[derivDownBtn, derivUpBtn, derivCancelBtn, derivOkBtn].forEach(el => {
-  if (!el) return;
-  el.addEventListener("focus", () => setModalKeyboardMode(true, derivModalOverlay));
-  el.addEventListener("blur",  () => setModalKeyboardMode(false, derivModalOverlay));
-});
+derivCancelBtn?.addEventListener("click", () => closeDerivModal(null));
+derivOkBtn?.addEventListener("click", () => closeDerivModal(derivCurrent));
 
 // --- Vista cantieri ---
 function renderProjectsList() {
@@ -644,7 +650,7 @@ function renderCoperchiSection(project) {
       data.coperchiDerivazioni,
       name,
       name,
-      true // derivazioni PT sono custom, eliminabili
+      true
     );
     coperchiBody.appendChild(row);
   });
@@ -679,7 +685,7 @@ function renderCoperchiSection(project) {
     const name = res.value.trim();
     if (!name) return;
 
-    data.coperchiCustom[name] = data.coperchiCustom[name] ?? 0; // aggiungi ai custom
+    data.coperchiCustom[name] = data.coperchiCustom[name] ?? 0;
 
     project.updatedAt = nowIso();
     saveState();
@@ -738,10 +744,7 @@ function initAccordion(openSection) {
 
 // --- Init app ---
 loadState();
-
-// Migra tutti i progetti esistenti per includere i nuovi coperchi base e lo store custom
 state.projects.forEach(p => ensureBaseCoperchi(p));
-
 renderProjectsList();
 
 if (state.selectedProjectId && getSelectedProject()) {
