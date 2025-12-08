@@ -47,7 +47,7 @@
               <span class="acc-label">Coperchi</span>
               <span class="chevron">▾</span>
             </button>
-            <div class="acc-body">Nessun elemento ancora.</div>
+            <div class="acc-body" id="coperchiBody"></div>
           </div>
           <div class="acc-item" data-section="linee">
             <button class="acc-toggle">
@@ -91,6 +91,22 @@
       <div class="modal-actions">
         <button id="fruitModalCancel" class="btn secondary">Annulla</button>
         <button id="fruitModalOk" class="btn primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Derivazione PT -->
+  <div id="derivModalOverlay" class="modal hidden">
+    <div class="modal-card deriv-card">
+      <h3>Derivazione PT</h3>
+      <div class="deriv-spinner">
+        <button id="derivDown" class="deriv-arrow">˅</button>
+        <div id="derivValue" class="deriv-value">4</div>
+        <button id="derivUp" class="deriv-arrow">˄</button>
+      </div>
+      <div class="modal-actions">
+        <button id="derivCancel" class="btn secondary">Annulla</button>
+        <button id="derivOk" class="btn primary">Invia</button>
       </div>
     </div>
   </div>
