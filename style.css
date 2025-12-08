@@ -99,13 +99,8 @@ main{
   width:100%;
 }
 
-.view{
-  display:block;
-}
-
-.view.hidden{
-  display:none;
-}
+.view{ display:block; }
+.view.hidden{ display:none; }
 
 .view-title{
   font-size:16px;
@@ -122,7 +117,6 @@ main{
 }
 
 /* Card piatta per dettaglio */
-
 .card-flat{
   margin-top:8px;
   border-radius:18px;
@@ -143,9 +137,7 @@ main{
   gap:8px;
 }
 
-.project-item:last-child{
-  border-bottom:none;
-}
+.project-item:last-child{ border-bottom:none; }
 
 .project-bar{
   width:3px;
@@ -188,20 +180,9 @@ main{
 
 /* DETTAGLIO CANTIERE */
 
-.detail-header{
-  margin-top:10px;
-  padding:0 4px;
-}
-
-.detail-main h2{
-  margin:0;
-  font-size:18px;
-}
-
-.detail-subtitle{
-  font-size:11px;
-  color:var(--muted);
-}
+.detail-header{ margin-top:10px; padding:0 4px; }
+.detail-main h2{ margin:0; font-size:18px; }
+.detail-subtitle{ font-size:11px; color:var(--muted); }
 
 /* ACCORDION stile app */
 
@@ -210,13 +191,8 @@ main{
   overflow:hidden;
 }
 
-.acc-item{
-  border-bottom:1px solid var(--border);
-}
-
-.acc-item:last-child{
-  border-bottom:none;
-}
+.acc-item{ border-bottom:1px solid var(--border); }
+.acc-item:last-child{ border-bottom:none; }
 
 .acc-toggle{
   width:100%;
@@ -229,18 +205,10 @@ main{
   font-size:15px;
 }
 
-.acc-label{
-  color:var(--primary);
-  font-weight:600;
-}
-
-.chevron{
-  font-size:14px;
-  color:var(--muted);
-}
+.acc-label{ color:var(--primary); font-weight:600; }
+.chevron{ font-size:14px; color:var(--muted); }
 
 /* Corpo accordion: display + fade */
-
 .acc-body{
   padding:8px 12px 12px;
   background:#f9fbff;
@@ -254,7 +222,7 @@ main{
   opacity:1;
 }
 
-/* TITOLI SEZIONE FRUTTI / COPERCHI */
+/* TITOLI SEZIONE */
 
 .frutti-section-title{
   font-size:13px;
@@ -266,20 +234,17 @@ main{
 }
 
 /* intestazione derivazioni PT */
-
 .deriv-header{
   display:flex;
   align-items:center;
   justify-content:space-between;
   margin:4px 0 2px;
 }
-
 .deriv-header-title{
   font-size:14px;
   font-weight:600;
   color:var(--muted);
 }
-
 .deriv-header-btn{
   border:none;
   background:#eef4ff;
@@ -293,18 +258,13 @@ main{
   font-size:18px;
 }
 
-/* RIGHE FRUTTI / COPERCHI */
-
+/* RIGHE */
 .frutto-row{
   padding:6px 4px;
   display:flex;
   align-items:center;
 }
-
-.frutto-name{
-  flex:1;
-  font-size:14px;
-}
+.frutto-name{ flex:1; font-size:14px; }
 
 .counter{
   display:flex;
@@ -325,7 +285,7 @@ main{
   justify-content:center;
 }
 
-/* minus rosso quando frutto/derivazione custom e v==0 */
+/* minus rosso quando custom e v==0 */
 .counter-btn.minus.zero{
   border-color:var(--danger);
   color:var(--danger);
@@ -342,20 +302,17 @@ main{
   font-size:14px;
 }
 
-/* Stato contatore: 0 grigio, >0 blu */
-
+/* Stato contatore */
 .counter-value.zero{
   background:#e0e3eb;
   color:#7b7f8a;
 }
-
 .counter-value.nonzero{
   background:var(--primary);
   color:#fff;
 }
 
-/* Bottone aggiungi frutto / coperchio */
-
+/* Bottoni aggiunta */
 .add-fruit-btn{
   margin-top:4px;
   padding:6px 10px;
@@ -368,10 +325,7 @@ main{
   align-items:center;
   gap:4px;
 }
-
-.add-fruit-btn span.plus{
-  font-size:18px;
-}
+.add-fruit-btn span.plus{ font-size:18px; }
 
 /* FAB */
 
@@ -391,14 +345,11 @@ main{
   justify-content:center;
   box-shadow:0 4px 14px rgba(0,0,0,0.25);
 }
-
-.fab.hidden{
-  display:none;
-}
+.fab.hidden{ display:none; }
 
 /* MODAL (generico) */
 
-/* Modale centrata verticalmente e orizzontalmente */
+/* Modale centrata di default */
 .modal{
   position:fixed;
   inset:0;
@@ -409,12 +360,14 @@ main{
   z-index:20;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
+.modal.hidden{ display:none; }
 
-.modal.hidden{
-  display:none;
+/* Quando la tastiera è attiva, usiamo layout “bottom sheet” */
+.modal.keyboard{
+  align-items:flex-end;      /* sposta la card verso il basso */
 }
 
-/* Popup tipo foglio centrato, con max-height e overflow per evitare tagli */
+/* Popup centrato, con max-height e scroll interno (default) */
 .modal-card{
   width:100%;
   max-width:480px;
@@ -422,18 +375,20 @@ main{
   border-radius:16px;
   padding:22px 18px 16px;
   margin:0 10px;
-  max-height:80vh;        /* limita altezza e lascia scroll interno */
+  max-height:80vh;           /* limita altezza e permette scroll interno */
   overflow:auto;
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
 }
 
-/* mantenuto look precedente ma centrato */
-.modal-card h3{
-  margin:0 0 14px;
+/* In modalità tastiera (bottom sheet), aggiungi spazio sotto per safe area */
+.modal.keyboard .modal-card{
+  margin-bottom:calc(env(safe-area-inset-bottom) + 12px);
+  border-radius:16px 16px 0 0;  /* aspetto foglio dal basso */
 }
 
+.modal-card h3{ margin:0 0 14px; }
 .modal-card input{
   width:100%;
   padding:12px 14px;
@@ -455,20 +410,10 @@ main{
   border:none;
   font-size:14px;
 }
-
-.btn.primary{
-  background:var(--primary);
-  color:#fff;
-}
-
-.btn.secondary{
-  background:#fff;
-  color:#757575;
-  border:1px solid var(--border);
-}
+.btn.primary{ background:var(--primary); color:#fff; }
+.btn.secondary{ background:#fff; color:#757575; border:1px solid var(--border); }
 
 /* MODAL derivazione PT - spinner */
-
 .deriv-spinner{
   display:flex;
   align-items:center;
@@ -476,7 +421,6 @@ main{
   gap:14px;
   margin:12px 0 0;
 }
-
 .deriv-value{
   font-size:32px;
   font-weight:700;
@@ -484,7 +428,6 @@ main{
   min-width:40px;
   text-align:center;
 }
-
 .deriv-arrow{
   width:32px;
   height:32px;
@@ -501,7 +444,5 @@ main{
 /* RESPONSIVE */
 
 @media (min-width:768px){
-  main{
-    padding:16px 0 80px;
-  }
+  main{ padding:16px 0 80px; }
 }
