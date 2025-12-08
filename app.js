@@ -127,47 +127,6 @@ const accordion         = document.getElementById("accordion");
 const headerBackBtn     = document.getElementById("headerBackBtn");
 const headerSubLine     = document.getElementById("headerSubLine");
 
-// --- VisualViewport controller per modali (no glitch) ---
-function setupViewportController() {
-  const vvp = window.visualViewport;
-  if (!vvp) return { attach: () => {}, detach: () => {} };
-
-  let rafId = null;
-  const overlays = new Set();
-
-  function updatePositionFor(overlayEl) {
-    const card = overlayEl?.querySelector('.modal-card');
-    if (!card) return;
-    const offset = vvp.offsetTop || 0; // px spinti in alto per tastiera/barre
-    const margin = 8;
-    const translate = offset > 0 ? -(offset - margin) : 0;
-    card.style.transform = `translateY(${translate}px)`;
-  }
-
-  function onViewportChange() {
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(() => {
-      overlays.forEach(overlayEl => updatePositionFor(overlayEl));
-    });
-  }
-
-  function attach(overlayEl) {
-    overlays.add(overlayEl);
-    updatePositionFor(overlayEl);
-  }
-  function detach(overlayEl) {
-    overlays.delete(overlayEl);
-    const card = overlayEl.querySelector('.modal-card');
-    if (card) card.style.transform = 'translateY(0)';
-  }
-
-  vvp.addEventListener('resize', onViewportChange);
-  vvp.addEventListener('scroll', onViewportChange);
-
-  return { attach, detach };
-}
-const viewportCtl = setupViewportController();
-
 // --- Modal cantiere ---
 let modalResolve = null;
 
@@ -176,7 +135,7 @@ function openModal(promptText = "Nome cantiere") {
   document.getElementById("modalTitle").innerText = promptText;
   modalInput.value = "";
   modalOverlay.classList.remove("hidden");
-  viewportCtl.attach(modalOverlay);
+  // focus dopo apertura per far salire la tastiera: la modale è bottom sheet, quindi non schizza
   setTimeout(() => modalInput.focus(), 100);
   return new Promise(resolve => { modalResolve = resolve; });
 }
@@ -184,7 +143,6 @@ function openModal(promptText = "Nome cantiere") {
 function closeModal(value = null) {
   if (!modalOverlay) return;
   modalOverlay.classList.add("hidden");
-  viewportCtl.detach(modalOverlay);
   if (modalResolve) {
     modalResolve(value);
     modalResolve = null;
@@ -213,14 +171,12 @@ function openFruitModal(sectionType) {
   fruitModalTitle.textContent = sectionType === "coperchio" ? "Aggiungi coperchio" : "Aggiungi frutto";
   fruitModalInput.value = "";
   fruitModalOverlay.classList.remove("hidden");
-  viewportCtl.attach(fruitModalOverlay);
   setTimeout(() => fruitModalInput.focus(), 100);
   return new Promise(resolve => { fruitModalResolve = resolve; });
 }
 
 function closeFruitModal(value = null) {
   fruitModalOverlay.classList.add("hidden");
-  viewportCtl.detach(fruitModalOverlay);
   if (fruitModalResolve) {
     fruitModalResolve({ value, type: fruitModalContext });
     fruitModalResolve = null;
@@ -251,13 +207,11 @@ function openDerivModal() {
   derivCurrent = DERIV_MIN;
   derivValueEl && (derivValueEl.textContent = String(derivCurrent));
   derivModalOverlay.classList.remove("hidden");
-  viewportCtl.attach(derivModalOverlay);
   return new Promise(resolve => { derivResolve = resolve; });
 }
 
 function closeDerivModal(value = null) {
   derivModalOverlay.classList.add("hidden");
-  viewportCtl.detach(derivModalOverlay);
   if (derivResolve) {
     derivResolve(value);
     derivResolve = null;
