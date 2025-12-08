@@ -239,24 +239,22 @@ main{
   color:var(--muted);
 }
 
-/* Corpo con animazione apertura/chiusura */
+/* Corpo accordion: display + fade */
+
 .acc-body{
-  padding:0 12px 0;
+  padding:8px 12px 12px;
   background:#f9fbff;
-  max-height:0;
-  overflow:hidden;
+  display:none;
   opacity:0;
-  transition:max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+  transition:opacity 0.20s ease;
 }
 
-/* stato aperto (aggiunto da JS) */
 .acc-body.open{
-  padding:8px 12px 12px;
-  max-height:800px;
+  display:block;
   opacity:1;
 }
 
-/* TITOLI SEZIONE FRUTTI (Smart / Normali) */
+/* TITOLI SEZIONE FRUTTI / COPERCHI */
 
 .frutti-section-title{
   font-size:13px;
@@ -267,7 +265,35 @@ main{
   margin:4px 4px 2px;
 }
 
-/* RIGHE FRUTTI */
+/* intestazione derivazioni PT */
+
+.deriv-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:4px 0 2px;
+}
+
+.deriv-header-title{
+  font-size:14px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+.deriv-header-btn{
+  border:none;
+  background:#eef4ff;
+  color:var(--primary);
+  border-radius:50%;
+  width:24px;
+  height:24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+}
+
+/* RIGHE FRUTTI / COPERCHI */
 
 .frutto-row{
   padding:6px 4px;
@@ -299,7 +325,7 @@ main{
   justify-content:center;
 }
 
-/* minus rosso quando frutto custom e v==0 */
+/* minus rosso quando frutto/derivazione custom e v==0 */
 .counter-btn.minus.zero{
   border-color:var(--danger);
   color:var(--danger);
@@ -328,7 +354,7 @@ main{
   color:#fff;
 }
 
-/* Bottone aggiungi frutto */
+/* Bottone aggiungi frutto / coperchio */
 
 .add-fruit-btn{
   margin-top:4px;
@@ -372,35 +398,38 @@ main{
 
 /* MODAL (generico) */
 
+/* Modale centrata verticalmente e orizzontalmente */
 .modal{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.45);
   display:flex;
-  align-items:flex-end;
-  justify-content:center;
+  align-items:center;        /* centrato verticalmente */
+  justify-content:center;    /* centrato orizzontalmente */
   z-index:20;
-  padding:0 0 env(safe-area-inset-bottom, 10px);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .modal.hidden{
   display:none;
 }
 
-/* Popup più alta tipo foglio che sale */
+/* Popup tipo foglio centrato, con max-height e overflow per evitare tagli */
 .modal-card{
   width:100%;
   max-width:480px;
   background:#fff;
-  border-radius:16px 16px 0 0;
+  border-radius:16px;
   padding:22px 18px 16px;
-  margin-bottom:10px;
-  min-height:40vh;
+  margin:0 10px;
+  max-height:80vh;        /* limita altezza e lascia scroll interno */
+  overflow:auto;
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
 }
 
+/* mantenuto look precedente ma centrato */
 .modal-card h3{
   margin:0 0 14px;
 }
@@ -434,8 +463,39 @@ main{
 
 .btn.secondary{
   background:#fff;
-  color:var(--muted);
+  color:#757575;
   border:1px solid var(--border);
+}
+
+/* MODAL derivazione PT - spinner */
+
+.deriv-spinner{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  margin:12px 0 0;
+}
+
+.deriv-value{
+  font-size:32px;
+  font-weight:700;
+  color:var(--primary);
+  min-width:40px;
+  text-align:center;
+}
+
+.deriv-arrow{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:none;
+  background:var(--primary-soft);
+  color:var(--primary);
+  font-size:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 /* RESPONSIVE */
