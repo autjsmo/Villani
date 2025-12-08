@@ -95,28 +95,45 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
 .fab{ position:fixed; right:18px; bottom:22px; width:56px; height:56px; border-radius:50%; border:none; background:var(--primary); color:#fff; font-size:30px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.25); }
 .fab.hidden{ display:none; }
 
-/* MODAL centrata, spostata via transform su mobile */
+/* MODAL: bottom sheet UX ottimizzata per smartphone */
 .modal{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.45);
   display:flex;
-  align-items:center;
+  align-items:flex-end; /* bottom sheet */
   justify-content:center;
   z-index:20;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 .modal.hidden{ display:none; }
 .modal-card{
-  width:100%; max-width:480px; background:#fff; border-radius:16px;
-  padding:22px 18px 16px; margin:0 10px;
-  max-height:80vh; overflow:auto;
-  display:flex; flex-direction:column; justify-content:flex-start;
-  will-change:transform; transition:transform 120ms ease;
+  width:100%;
+  max-width:520px;
+  background:#fff;
+  border-radius:16px 16px 0 0;
+  padding:18px 16px 14px;
+  margin:0 10px;
+  /* altezza dinamica: usa quasi tutta la viewport, ma lascia spazio per tastiera/gestures */
+  max-height:80vh;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  /* rendering fluido */
+  will-change:transform, height;
 }
-.modal-card h3{ margin:0 0 14px; }
-.modal-card input{ width:100%; padding:12px 14px; border-radius:10px; border:2px solid #f1b835; font-size:15px; }
-.modal-actions{ margin-top:18px; display:flex; justify-content:flex-end; gap:8px; }
+.modal-card h3{ margin:0 0 12px; }
+.modal-card input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:2px solid #f1b835;
+  font-size:15px;
+}
+.modal-actions{
+  margin-top:14px; display:flex; justify-content:flex-end; gap:8px;
+}
 .btn{ border-radius:var(--radius-pill); padding:6px 14px; border:none; font-size:14px; }
 .btn.primary{ background:var(--primary); color:#fff; }
 .btn.secondary{ background:#fff; color:#757575; border:1px solid var(--border); }
@@ -126,5 +143,12 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
 .deriv-value{ font-size:32px; font-weight:700; color:var(--primary); min-width:40px; text-align:center; }
 .deriv-arrow{ width:32px; height:32px; border-radius:50%; border:none; background:var(--primary-soft); color:var(--primary); font-size:20px; display:flex; align-items:center; justify-content:center; }
 
-/* RESPONSIVE */
-@media (min-width:768px){ main{ padding:16px 0 80px; } }
+/* Desktop: modale centrata classica */
+@media (min-width:768px){
+  .modal{ align-items:center; }
+  .modal-card{
+    border-radius:16px;
+    max-height:70vh;
+  }
+  main{ padding:16px 0 80px; }
+}
