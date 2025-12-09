@@ -18,13 +18,11 @@
   </header>
 
   <main>
-    <!-- Vista elenco cantieri -->
     <section id="projectsView" class="view">
       <div class="view-title">Gestione cantieri</div>
       <div id="projectsList" class="card list"></div>
     </section>
 
-    <!-- Vista dettaglio cantiere -->
     <section id="projectDetailView" class="view hidden">
       <div class="detail-header">
         <div class="detail-main">
@@ -47,7 +45,7 @@
               <span class="acc-label">Coperchi</span>
               <span class="chevron">▾</span>
             </button>
-            <div class="acc-body" id="coperchiBody"></div>
+              <div class="acc-body" id="coperchiBody"></div>
           </div>
           <div class="acc-item" data-section="linee">
             <button class="acc-toggle">
@@ -68,10 +66,9 @@
     </section>
   </main>
 
-  <!-- Floating + -->
   <button id="addProjectBtn" class="fab">+</button>
 
-  <!-- Modal per nome cantiere -->
+  <!-- Modal: nuovo cantiere -->
   <div id="modalOverlay" class="modal hidden">
     <div class="modal-card">
       <h3 id="modalTitle">Nuovo cantiere</h3>
@@ -83,7 +80,7 @@
     </div>
   </div>
 
-  <!-- Modal per aggiungere frutto/coperchio -->
+  <!-- Modal: aggiungi frutto/coperchio -->
   <div id="fruitModalOverlay" class="modal hidden">
     <div class="modal-card">
       <h3 id="fruitModalTitle">Aggiungi frutto</h3>
@@ -95,7 +92,7 @@
     </div>
   </div>
 
-  <!-- Modal Derivazione PT -->
+  <!-- Modal: Derivazione PT -->
   <div id="derivModalOverlay" class="modal hidden">
     <div class="modal-card">
       <h3>Derivazione PT</h3>
