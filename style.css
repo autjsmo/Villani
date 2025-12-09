@@ -95,7 +95,9 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
 .fab{ position:fixed; right:18px; bottom:22px; width:56px; height:56px; border-radius:50%; border:none; background:var(--primary); color:#fff; font-size:30px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.25); }
 .fab.hidden{ display:none; }
 
-/* MODAL: bottom sheet UX ottimizzata per smartphone */
+/* MODAL: bottom sheet progettato per smartphone
+   1) Usa le viewport unit dinamiche (dvh/svh) se disponibili
+   2) Fallback: il JS imposta width/height con visualViewport */
 .modal{
   position:fixed;
   inset:0;
@@ -104,6 +106,8 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
   align-items:flex-end; /* bottom sheet */
   justify-content:center;
   z-index:20;
+  height:100svh;           /* fallback moderno */
+  height:100dvh;           /* preferito: segue la tastiera */
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 .modal.hidden{ display:none; }
@@ -114,14 +118,12 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
   border-radius:16px 16px 0 0;
   padding:18px 16px 14px;
   margin:0 10px;
-  /* altezza dinamica: usa quasi tutta la viewport, ma lascia spazio per tastiera/gestures */
-  max-height:80vh;
+  max-height:80dvh;         /* non supera l’altezza visibile */
+  max-height:80svh;
   overflow:auto;
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
-  /* rendering fluido */
-  will-change:transform, height;
 }
 .modal-card h3{ margin:0 0 12px; }
 .modal-card input{
@@ -145,10 +147,7 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
 
 /* Desktop: modale centrata classica */
 @media (min-width:768px){
-  .modal{ align-items:center; }
-  .modal-card{
-    border-radius:16px;
-    max-height:70vh;
-  }
+  .modal{ align-items:center; height:100vh; }
+  .modal-card{ border-radius:16px; max-height:70vh; }
   main{ padding:16px 0 80px; }
 }
