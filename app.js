@@ -127,53 +127,6 @@ const accordion         = document.getElementById("accordion");
 const headerBackBtn     = document.getElementById("headerBackBtn");
 const headerSubLine     = document.getElementById("headerSubLine");
 
-// --- Fallback robusto per tastiera: vincola la modale alla visualViewport
-function createViewportBinder() {
-  const vvp = window.visualViewport;
-  if (!vvp) return { bind: () => {}, unbind: () => {} };
-
-  const overlays = new Set();
-  let listening = false;
-
-  function apply(overlay) {
-    const style = overlay.style;
-    // usa traslazione per offset (iOS/Chrome) e fissa dimensioni all'area visibile
-    style.transform = `translate(${vvp.offsetLeft || 0}px, ${vvp.offsetTop || 0}px)`;
-    style.width = vvp.width + "px";
-    style.height = vvp.height + "px";
-  }
-
-  function onChange() {
-    overlays.forEach(apply);
-  }
-
-  function bind(overlay) {
-    overlays.add(overlay);
-    apply(overlay);
-    if (!listening) {
-      vvp.addEventListener("resize", onChange);
-      vvp.addEventListener("scroll", onChange);
-      listening = true;
-    }
-  }
-
-  function unbind(overlay) {
-    overlays.delete(overlay);
-    const style = overlay.style;
-    style.transform = "";
-    style.width = "";
-    style.height = "";
-    if (listening && overlays.size === 0) {
-      vvp.removeEventListener("resize", onChange);
-      vvp.removeEventListener("scroll", onChange);
-      listening = false;
-    }
-  }
-
-  return { bind, unbind };
-}
-const viewportBinder = createViewportBinder();
-
 // --- Modal cantiere ---
 let modalResolve = null;
 
@@ -182,7 +135,6 @@ function openModal(promptText = "Nome cantiere") {
   document.getElementById("modalTitle").innerText = promptText;
   modalInput.value = "";
   modalOverlay.classList.remove("hidden");
-  viewportBinder.bind(modalOverlay);     // garantisce che resti sopra la tastiera
   setTimeout(() => modalInput.focus(), 50);
   return new Promise(resolve => { modalResolve = resolve; });
 }
@@ -190,7 +142,6 @@ function openModal(promptText = "Nome cantiere") {
 function closeModal(value = null) {
   if (!modalOverlay) return;
   modalOverlay.classList.add("hidden");
-  viewportBinder.unbind(modalOverlay);
   if (modalResolve) {
     modalResolve(value);
     modalResolve = null;
@@ -219,14 +170,12 @@ function openFruitModal(sectionType) {
   fruitModalTitle.textContent = sectionType === "coperchio" ? "Aggiungi coperchio" : "Aggiungi frutto";
   fruitModalInput.value = "";
   fruitModalOverlay.classList.remove("hidden");
-  viewportBinder.bind(fruitModalOverlay);
   setTimeout(() => fruitModalInput.focus(), 50);
   return new Promise(resolve => { fruitModalResolve = resolve; });
 }
 
 function closeFruitModal(value = null) {
   fruitModalOverlay.classList.add("hidden");
-  viewportBinder.unbind(fruitModalOverlay);
   if (fruitModalResolve) {
     fruitModalResolve({ value, type: fruitModalContext });
     fruitModalResolve = null;
@@ -257,13 +206,11 @@ function openDerivModal() {
   derivCurrent = DERIV_MIN;
   derivValueEl && (derivValueEl.textContent = String(derivCurrent));
   derivModalOverlay.classList.remove("hidden");
-  viewportBinder.bind(derivModalOverlay);
   return new Promise(resolve => { derivResolve = resolve; });
 }
 
 function closeDerivModal(value = null) {
   derivModalOverlay.classList.add("hidden");
-  viewportBinder.unbind(derivModalOverlay);
   if (derivResolve) {
     derivResolve(value);
     derivResolve = null;
@@ -419,7 +366,6 @@ function openProjectDetail() {
     return;
   }
 
-  // Migrazione: assicura i coperchi base e inizializza coperchiCustom
   ensureBaseCoperchi(project);
 
   projectNameTitle.textContent = project.name;
@@ -552,7 +498,6 @@ function renderFruttiSection(project) {
   data.fruttiCustom = data.fruttiCustom || {};
   data.smartCustom = data.smartCustom || {};
 
-  // --- NORMALI ---
   const normTitle = document.createElement("div");
   normTitle.className = "frutti-section-title";
   normTitle.textContent = "Normali";
@@ -579,7 +524,6 @@ function renderFruttiSection(project) {
 
   fruttiBody.appendChild(document.createElement("hr")).style.border = "none";
 
-  // --- SMART ---
   const smartTitle = document.createElement("div");
   smartTitle.className = "frutti-section-title";
   smartTitle.textContent = "Smart";
@@ -633,7 +577,6 @@ function renderCoperchiSection(project) {
   data.coperchiCustom = data.coperchiCustom || {};
   data.coperchiDerivazioni = data.coperchiDerivazioni || {};
 
-  // --- BLOCCO DERIVAZIONI PT ---
   const derivHeader = document.createElement("div");
   derivHeader.className = "deriv-header";
 
@@ -663,7 +606,6 @@ function renderCoperchiSection(project) {
 
   coperchiBody.appendChild(document.createElement("hr")).style.border = "none";
 
-  // --- COPERCHI NORMALI BASE + CUSTOM ---
   const coperchiTitle = document.createElement("div");
   coperchiTitle.className = "frutti-section-title";
   coperchiTitle.textContent = "Coperchi";
