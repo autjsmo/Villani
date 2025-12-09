@@ -1,15 +1,7 @@
 :root{
-  --bg:#f2f6fb;
-  --card:#ffffff;
-  --primary:#1a73e8;
-  --primary-soft:#e3f0ff;
-  --text:#1c1c1c;
-  --muted:#8a8a8a;
-  --danger:#e53935;
-  --border:#dde3ee;
-  --radius-card:18px;
-  --radius-pill:999px;
-  --shadow-soft:0 4px 12px rgba(0,0,0,0.06);
+  --bg:#f2f6fb; --card:#ffffff; --primary:#1a73e8; --primary-soft:#e3f0ff;
+  --text:#1c1c1c; --muted:#8a8a8a; --danger:#e53935; --border:#dde3ee;
+  --radius-card:18px; --radius-pill:999px; --shadow-soft:0 4px 12px rgba(0,0,0,0.06);
   --font-system:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
 }
 
@@ -95,19 +87,18 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
 .fab{ position:fixed; right:18px; bottom:22px; width:56px; height:56px; border-radius:50%; border:none; background:var(--primary); color:#fff; font-size:30px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.25); }
 .fab.hidden{ display:none; }
 
-/* MODAL: bottom sheet progettato per smartphone
-   1) Usa le viewport unit dinamiche (dvh/svh) se disponibili
-   2) Fallback: il JS imposta width/height con visualViewport */
+/* MODAL: bottom sheet stabile per smartphone */
 .modal{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.45);
   display:flex;
-  align-items:flex-end; /* bottom sheet */
+  align-items:flex-end; /* sempre in basso */
   justify-content:center;
   z-index:20;
-  height:100svh;           /* fallback moderno */
-  height:100dvh;           /* preferito: segue la tastiera */
+  width:100vw;
+  height:100dvh;      /* unità dinamica: esclude tastiera su browser moderni */
+  height:100svh;      /* fallback compatibile */
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 .modal.hidden{ display:none; }
@@ -118,7 +109,7 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
   border-radius:16px 16px 0 0;
   padding:18px 16px 14px;
   margin:0 10px;
-  max-height:80dvh;         /* non supera l’altezza visibile */
+  max-height:80dvh;   /* non supera l’area visibile */
   max-height:80svh;
   overflow:auto;
   display:flex;
