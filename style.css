@@ -1,7 +1,15 @@
 :root{
-  --bg:#f2f6fb; --card:#ffffff; --primary:#1a73e8; --primary-soft:#e3f0ff;
-  --text:#1c1c1c; --muted:#8a8a8a; --danger:#e53935; --border:#dde3ee;
-  --radius-card:18px; --radius-pill:999px; --shadow-soft:0 4px 12px rgba(0,0,0,0.06);
+  --bg:#f2f6fb;
+  --card:#ffffff;
+  --primary:#1a73e8;
+  --primary-soft:#e3f0ff;
+  --text:#1c1c1c;
+  --muted:#8a8a8a;
+  --danger:#e53935;
+  --border:#dde3ee;
+  --radius-card:18px;
+  --radius-pill:999px;
+  --shadow-soft:0 4px 12px rgba(0,0,0,0.06);
   --font-system:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
 }
 
@@ -70,13 +78,18 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
 .deriv-header{ display:flex; align-items:center; justify-content:space-between; margin:4px 0 2px; }
 .deriv-header-title{ font-size:14px; font-weight:600; color:var(--muted); }
 .deriv-header-btn{ border:none; background:#eef4ff; color:var(--primary); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+/* Spazio extra tra titolo sezione e header derivazioni/partitore */
+.frutti-section-title + .deriv-header{ margin-top:10px; }
+/* Spazio extra sopra il blocco Aspiratore */
+.aspiratore-header{ margin-top:12px; }
 
 /* RIGHE */
 .frutto-row{ padding:6px 4px; display:flex; align-items:center; }
 .frutto-name{ flex:1; font-size:14px; }
 .counter{ display:flex; align-items:center; gap:4px; }
 .counter-btn{ width:32px; height:32px; border-radius:8px; border:1px solid var(--primary); background:#fff; color:var(--primary); font-size:20px; display:flex; align-items:center; justify-content:center; }
-.counter-btn.minus.zero{ border-color:var(--danger); color:var(--danger); }
+.counter-btn.minus.zero{ border-color:var(--danger) !important; color:var(--danger) !important; background:#ffe5e5 !important; }
+.counter-btn.force-red{ border-color:var(--danger) !important; color:var(--danger) !important; background:#ffe5e5 !important; }
 .counter-value{ width:40px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; }
 .counter-value.zero{ background:#e0e3eb; color:#7b7f8a; }
 .counter-value.nonzero{ background:var(--primary); color:#fff; }
@@ -87,58 +100,124 @@ main{ flex:1; padding:10px 10px 70px; max-width:700px; margin:0 auto; width:100%
 .fab{ position:fixed; right:18px; bottom:22px; width:56px; height:56px; border-radius:50%; border:none; background:var(--primary); color:#fff; font-size:30px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.25); }
 .fab.hidden{ display:none; }
 
-/* MODAL: bottom sheet stabile per smartphone */
+/* MODAL */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.45);
+  background:rgba(0,0,0,0.5);
   display:flex;
-  align-items:flex-end; /* sempre in basso */
+  align-items:center;
   justify-content:center;
-  z-index:20;
-  width:100vw;
-  height:100dvh;      /* unità dinamica: esclude tastiera su browser moderni */
-  height:100svh;      /* fallback compatibile */
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  z-index:9999;
+  padding:20px;
 }
-.modal.hidden{ display:none; }
+.modal.hidden{ display:none !important; }
 .modal-card{
   width:100%;
-  max-width:520px;
+  max-width:360px;
   background:#fff;
-  border-radius:16px 16px 0 0;
-  padding:18px 16px 14px;
-  margin:0 10px;
-  max-height:80dvh;   /* non supera l’area visibile */
-  max-height:80svh;
+  border-radius:16px;
+  padding:24px 20px 20px;
+  max-height:90vh;
   overflow:auto;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
+  box-shadow:0 12px 40px rgba(0,0,0,0.3);
 }
-.modal-card h3{ margin:0 0 12px; }
-.modal-card input{
+.modal-card h3{ margin:0 0 16px; font-size:18px; font-weight:600; }
+
+/* Input solo per text */
+.modal-card input[type="text"]{
   width:100%;
-  padding:12px 14px;
-  border-radius:10px;
-  border:2px solid #f1b835;
+  padding:14px 16px;
+  border-radius:12px;
+  border:2px solid var(--primary);
+  font-size:16px;
+  outline:none;
+}
+.modal-card input[type="text"]:focus{
+  border-color:#f1b835;
+}
+
+/* Partitore: radio in alto, simmetrico */
+.modal-card h3 {
+  text-align: left;
+  margin: 0 0 12px;
+}
+.part-options{
+  margin: 0 0 10px;
+  display:flex;
+  justify-content:space-around;
+  gap:24px;
+  width:100%;
+}
+.part-option{
+  display:flex;
+  align-items:center;
+  gap:8px;
   font-size:15px;
 }
-.modal-actions{
-  margin-top:14px; display:flex; justify-content:flex-end; gap:8px;
+.part-option input[type="radio"]{
+  appearance: radio;
+  -webkit-appearance: radio;
+  width:18px;
+  height:18px;
+  margin:0;
+  accent-color: var(--primary);
 }
-.btn{ border-radius:var(--radius-pill); padding:6px 14px; border:none; font-size:14px; }
+.part-option span{
+  font-size:15px;
+  color:var(--text);
+}
+
+/* Spinner centrato e simmetrico */
+.deriv-spinner{
+  width:100%;
+  max-width:260px;
+  margin:14px auto 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-around;
+  gap:16px;
+}
+
+.modal-actions{
+  margin-top:20px; display:flex; justify-content:flex-end; gap:12px;
+}
+.btn{
+  border-radius:var(--radius-pill);
+  padding:10px 22px;
+  border:none;
+  font-size:15px;
+  font-weight:500;
+  cursor:pointer;
+}
 .btn.primary{ background:var(--primary); color:#fff; }
-.btn.secondary{ background:#fff; color:#757575; border:1px solid var(--border); }
+.btn.secondary{ background:#f0f0f0; color:#555; }
 
-/* Derivazione PT spinner */
-.deriv-spinner{ display:flex; align-items:center; justify-content:center; gap:14px; margin:12px 0 0; }
-.deriv-value{ font-size:32px; font-weight:700; color:var(--primary); min-width:40px; text-align:center; }
-.deriv-arrow{ width:32px; height:32px; border-radius:50%; border:none; background:var(--primary-soft); color:var(--primary); font-size:20px; display:flex; align-items:center; justify-content:center; }
+/* Spinner derivazione */
+.deriv-value{ font-size:42px; font-weight:700; color:var(--primary); min-width:60px; text-align:center; }
+.deriv-arrow{
+  width:48px; height:48px; border-radius:50%; border:none;
+  background:var(--primary-soft); color:var(--primary);
+  font-size:28px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.deriv-arrow:active{ background:var(--primary); color:#fff; }
 
-/* Desktop: modale centrata classica */
-@media (min-width:768px){
-  .modal{ align-items:center; height:100vh; }
-  .modal-card{ border-radius:16px; max-height:70vh; }
-  main{ padding:16px 0 80px; }
+/* Aspiratore modal */
+.aspir-row{
+  display:flex; align-items:center; gap:10px; margin:8px 0 14px;
+  font-size:15px; color:var(--text);
+}
+.aspir-row input[type="checkbox"]{
+  width:18px; height:18px; accent-color:var(--primary);
+}
+.aspir-input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:2px solid var(--primary);
+  font-size:15px;
+  outline:none;
+}
+.aspir-input:focus{
+  border-color:#f1b835;
 }
