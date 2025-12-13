@@ -4,6 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Villani - Gestione cantieri</title>
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -40,26 +49,37 @@
             </button>
             <div class="acc-body" id="fruttiBody"></div>
           </div>
+
           <div class="acc-item" data-section="coperchi">
             <button class="acc-toggle">
               <span class="acc-label">Coperchi</span>
               <span class="chevron">▾</span>
             </button>
-              <div class="acc-body" id="coperchiBody"></div>
+            <div class="acc-body" id="coperchiBody"></div>
           </div>
+
+          <div class="acc-item" data-section="spine">
+            <button class="acc-toggle">
+              <span class="acc-label">Spine</span>
+              <span class="chevron">▾</span>
+            </button>
+            <div class="acc-body" id="spineBody"></div>
+          </div>
+
+          <div class="acc-item" data-section="vario">
+            <button class="acc-toggle">
+              <span class="acc-label">Vario</span>
+              <span class="chevron">▾</span>
+            </button>
+            <div class="acc-body" id="varioBody"></div>
+          </div>
+
           <div class="acc-item" data-section="linee">
             <button class="acc-toggle">
               <span class="acc-label">Linee</span>
               <span class="chevron">▾</span>
             </button>
-            <div class="acc-body">Nessun elemento ancora.</div>
-          </div>
-          <div class="acc-item" data-section="altro">
-            <button class="acc-toggle">
-              <span class="acc-label">Altro</span>
-              <span class="chevron">▾</span>
-            </button>
-            <div class="acc-body">Nessun elemento ancora.</div>
+            <div class="acc-body" id="lineeBody"></div>
           </div>
         </div>
       </div>
@@ -80,7 +100,7 @@
     </div>
   </div>
 
-  <!-- Modal: aggiungi frutto/coperchio -->
+  <!-- Modal: aggiungi frutto/coperchio/spina -->
   <div id="fruitModalOverlay" class="modal hidden">
     <div class="modal-card">
       <h3 id="fruitModalTitle">Aggiungi frutto</h3>
@@ -108,6 +128,68 @@
     </div>
   </div>
 
+  <!-- Modal: Partitore (radio in alto + spinner) -->
+  <div id="partModalOverlay" class="modal hidden">
+    <div class="modal-card">
+      <h3>Nuovo partitore</h3>
+
+      <div class="part-options">
+        <label class="part-option">
+          <input type="radio" name="partType" id="partRadioNormale" value="normale" checked />
+          <span>Normale</span>
+        </label>
+
+        <label class="part-option">
+          <input type="radio" name="partType" id="partRadioPassante" value="passante" />
+          <span>Passante</span>
+        </label>
+      </div>
+
+      <div class="deriv-spinner">
+        <button id="partDown" class="deriv-arrow">˅</button>
+        <div id="partValue" class="deriv-value">4</div>
+        <button id="partUp" class="deriv-arrow">˄</button>
+      </div>
+
+      <div class="modal-actions">
+        <button id="partCancel" class="btn secondary">Annulla</button>
+        <button id="partOk" class="btn primary">Aggiungi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Aspiratore -->
+  <div id="aspirModalOverlay" class="modal hidden">
+    <div class="modal-card">
+      <h3>Aggiungi Aspiratore</h3>
+
+      <label class="aspir-row">
+        <input type="checkbox" id="aspirTimer" />
+        <span>Timer</span>
+      </label>
+
+      <input
+        id="aspirSize"
+        class="aspir-input"
+        type="text"
+        inputmode="decimal"
+        placeholder="dimensione in cm"
+      />
+
+      <div class="modal-actions">
+        <button id="aspirCancel" class="btn secondary">Annulla</button>
+        <button id="aspirOk" class="btn primary" disabled>Aggiungi</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+  </script>
 </body>
 </html>
