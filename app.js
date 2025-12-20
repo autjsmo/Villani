@@ -149,6 +149,21 @@ const lineeBody          = document.getElementById("lineeBody"); // deve esister
 
 const headerBackBtn      = document.getElementById("headerBackBtn");
 const headerSubLine      = document.getElementById("headerSubLine");
+const headerCopyBtn      = document.getElementById("headerCopyBtn"); // bottone copia
+
+// Copy modal refs
+const copyModalOverlay   = document.getElementById("copyModalOverlay");
+const copyCentralino     = document.getElementById("copyCentralino");
+const copyDymo           = document.getElementById("copyDymo");
+const copyCitofono       = document.getElementById("copyCitofono");
+const copyMorsetti       = document.getElementById("copyMorsetti");
+const copyAddExtraBtn    = document.getElementById("copyAddExtraBtn");
+const copyExtraList      = document.getElementById("copyExtraList");
+const copyCancelBtn      = document.getElementById("copyCancel");
+const copyDoCopyBtn      = document.getElementById("copyDoCopy");
+
+// Stato extra per modal copia
+let copyExtras = []; // array di stringhe
 
 // Aspiratore modal refs
 const aspirModalOverlay  = document.getElementById("aspirModalOverlay");
@@ -316,7 +331,204 @@ fruitModalInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") { e
 derivCancelBtn?.addEventListener("click", () => closeDerivModal(null));
 derivOkBtn?.addEventListener("click", () => closeDerivModal(derivCurrent));
 
-// --- Stato, render, logica app ---
+// --- Copia riepilogo: testo base (righe vuote tra blocchi) ---
+function buildProjectSummary(project){
+  const lines = [];
+  const data = project.data || {};
+
+  const addBlock = (title, items) => {
+    if (!items || items.length === 0) return;
+    if (lines.length > 0) lines.push(""); // riga vuota tra i titoli
+    lines.push(title);
+    items.forEach((s) => lines.push(`- ${s}`));
+  };
+
+  const entriesFromObject = (obj) =>
+    Object.keys(obj || {})
+      .filter((k) => (obj[k] ?? 0) > 0)
+      .map((k) => `${k}: ${obj[k]}`);
+
+  // Frutti (normali + custom)
+  const fruttiItems = [
+    ...entriesFromObject(data.frutti),
+    ...entriesFromObject(data.fruttiCustom),
+  ];
+  addBlock("Frutti", fruttiItems);
+
+  // Frutti smart (smart + custom)
+  const fruttiSmartItems = [
+    ...entriesFromObject(data.smart),
+    ...entriesFromObject(data.smartCustom),
+  ];
+  addBlock("Frutti smart", fruttiSmartItems);
+
+  // Coperchi
+  const coperchiItems = [
+    ...entriesFromObject(data.coperchi),
+    ...entriesFromObject(data.coperchiCustom),
+  ];
+  addBlock("Coperchi", coperchiItems);
+
+  // Derivazioni PT
+  addBlock("Derivazioni PT", entriesFromObject(data.coperchiDerivazioni));
+
+  // Spine
+  const spineItems = [
+    ...entriesFromObject(data.spine),
+    ...entriesFromObject(data.spineCustom),
+  ];
+  addBlock("Spine", spineItems);
+
+  // Partitori (solo lista)
+  if ((data.varioList || []).length) {
+    addBlock("Partitori", data.varioList.map((e) => e.label));
+  }
+
+  // Aspiratori (solo lista)
+  if ((data.aspiratoriList || []).length) {
+    addBlock("Aspiratori", data.aspiratoriList.map((e) => e.label));
+  }
+
+  // Illuminazione
+  const vc = data.varioCounters || {};
+  const illumItems = [];
+  if ((vc.portaLampada || 0) > 0) illumItems.push(`Porta lampada: ${vc.portaLampada}`);
+  if ((vc.lampadina || 0) > 0) illumItems.push(`Lampadina: ${vc.lampadina}`);
+  addBlock("Illuminazione", illumItems);
+
+  // Dispositivi vari
+  const devicesItems = [
+    ...entriesFromObject(data.varioDevices),
+    ...entriesFromObject(data.varioDevicesCustom),
+  ];
+  addBlock("Dispositivi vari", devicesItems);
+
+  // Linee (solo lista)
+  if ((data.lineeList || []).length) {
+    addBlock("Linee", data.lineeList.map((l) => l.name));
+  }
+
+  return lines.join("\n");
+}
+
+// Clipboard helper
+async function writeToClipboard(text){
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  document.body.removeChild(ta);
+}
+
+// --- Modale Copia: UI + logica ---
+function renderCopyExtras(){
+  if(!copyExtraList) return;
+  copyExtraList.innerHTML = "";
+  copyExtras.forEach((name, idx)=>{
+    const row = document.createElement("div");
+    row.className = "copy-extra-item";
+
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = name;
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove";
+    remove.textContent = "−";
+    remove.addEventListener("click", ()=>{
+      copyExtras = copyExtras.filter((_, i)=> i !== idx);
+      renderCopyExtras();
+    });
+
+    row.appendChild(label);
+    row.appendChild(remove);
+    copyExtraList.appendChild(row);
+  });
+}
+
+function openCopyModal(){
+  if(copyCentralino) copyCentralino.checked = false;
+  if(copyDymo) copyDymo.checked = false;
+  if(copyCitofono) copyCitofono.checked = false;
+  if(copyMorsetti) copyMorsetti.checked = false;
+
+  copyExtras = [];
+  renderCopyExtras();
+
+  openModalBase(copyModalOverlay, copyDoCopyBtn);
+}
+
+function closeCopyModal(){
+  closeModalBase(copyModalOverlay);
+}
+
+copyCancelBtn?.addEventListener("click", closeCopyModal);
+
+copyAddExtraBtn?.addEventListener("click", async ()=>{
+  // FIX: chiudo momentaneamente il modal copia così il prompt si vede sempre
+  closeCopyModal();
+
+  const name = await openModal("Aggiungi altro", "Nome elemento");
+  if(name){
+    const v = name.trim();
+    if(v) copyExtras.push(v);
+  }
+
+  // riapro il modal copia e ridisegno lista
+  openModalBase(copyModalOverlay, copyDoCopyBtn);
+  renderCopyExtras();
+});
+
+copyDoCopyBtn?.addEventListener("click", async ()=>{
+  const project = getSelectedProject();
+  if(!project){
+    alert("Nessun cantiere selezionato.");
+    closeCopyModal();
+    return;
+  }
+
+  const base = buildProjectSummary(project);
+
+  // elementi selezionati + aggiunti (questi vanno in fondo col titolo "Altro")
+  const selected = [];
+  if(copyCentralino?.checked) selected.push("Centralino");
+  if(copyDymo?.checked) selected.push("Dymo");
+  if(copyCitofono?.checked) selected.push("Citofono");
+  if(copyMorsetti?.checked) selected.push("Morsetti");
+  copyExtras.forEach(x => selected.push(x));
+
+  const parts = [];
+  parts.push(`Cantiere: ${project.name}`);
+
+  if(base){
+    parts.push(""); // riga vuota
+    parts.push(base);
+  }
+
+  if(selected.length){
+    parts.push(""); // riga vuota
+    parts.push("Altro");
+    selected.forEach(x => parts.push(`- ${x}`));
+  }
+
+  const finalText = parts.join("\n");
+
+  try{
+    await writeToClipboard(finalText);
+    alert("Riepilogo copiato negli appunti.");
+    closeCopyModal();
+  }catch(e){
+    console.error("Copy failed", e);
+    alert("Non riesco a copiare negli appunti.");
+  }
+});
+
 
 function renderProjectsList(){
   projectsList.innerHTML="";
@@ -399,6 +611,7 @@ function showProjectsView(){
   projectsView.classList.remove("hidden");
   projectDetailView.classList.add("hidden");
   headerBackBtn.classList.add("hidden");
+  headerCopyBtn.classList.add("hidden");
   headerSubLine.textContent="";
   addProjectBtn.classList.remove("hidden");
 }
@@ -406,6 +619,7 @@ function showProjectDetailView(){
   projectsView.classList.add("hidden");
   projectDetailView.classList.remove("hidden");
   headerBackBtn.classList.remove("hidden");
+  headerCopyBtn.classList.remove("hidden");
   addProjectBtn.classList.add("hidden");
   const project=getSelectedProject();
   headerSubLine.textContent=project?project.name:"";
@@ -415,6 +629,7 @@ headerBackBtn.addEventListener("click",()=>{
   saveState();
   showProjectsView();
 });
+headerCopyBtn?.addEventListener("click", openCopyModal);
 
 // Dettaglio
 function openProjectDetail(){
