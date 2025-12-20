@@ -17,13 +17,13 @@
 </head>
 <body>
   <header class="app-header">
-    <button id="headerBackBtn" class="header-circle hidden">&larr;</button>
+    <button id="headerBackBtn" class="header-circle hidden" aria-label="Indietro">&larr;</button>
     <div class="header-center">
       <h1>Villani</h1>
       <div class="subtitle">Impianti</div>
       <div id="headerSubLine" class="subtitle-small"></div>
     </div>
-    <div class="header-right-placeholder"></div>
+    <button id="headerCopyBtn" class="header-circle hidden" aria-label="Copia riepilogo">⧉</button>
   </header>
 
   <main>
@@ -179,6 +179,40 @@
       <div class="modal-actions">
         <button id="aspirCancel" class="btn secondary">Annulla</button>
         <button id="aspirOk" class="btn primary" disabled>Aggiungi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Copia riepilogo (checkbox + aggiungi altro) -->
+  <div id="copyModalOverlay" class="modal hidden">
+    <div class="modal-card">
+      <h3>Copia riepilogo</h3>
+
+      <label class="copy-row">
+        <input type="checkbox" id="copyCentralino" />
+        <span>Centralino</span>
+      </label>
+      <label class="copy-row">
+        <input type="checkbox" id="copyDymo" />
+        <span>Dymo</span>
+      </label>
+      <label class="copy-row">
+        <input type="checkbox" id="copyCitofono" />
+        <span>Citofono</span>
+      </label>
+      <label class="copy-row">
+        <input type="checkbox" id="copyMorsetti" />
+        <span>Morsetti</span>
+      </label>
+
+      <div class="copy-extra">
+        <button id="copyAddExtraBtn" class="btn secondary" type="button">Aggiungi altro</button>
+        <div id="copyExtraList"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="copyCancel" class="btn secondary" type="button">Annulla</button>
+        <button id="copyDoCopy" class="btn primary" type="button">Copia</button>
       </div>
     </div>
   </div>
