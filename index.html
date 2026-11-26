@@ -10,6 +10,7 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
@@ -17,66 +18,94 @@
 </head>
 <body>
   <header class="app-header">
-    <button id="headerBackBtn" class="header-circle hidden" aria-label="Indietro">&larr;</button>
+    <button id="headerBackBtn" class="header-circle hidden" type="button" aria-label="Indietro">&larr;</button>
     <div class="header-center">
       <h1>Villani</h1>
       <div class="subtitle">Impianti</div>
       <div id="headerSubLine" class="subtitle-small"></div>
     </div>
-    <button id="headerCopyBtn" class="header-circle hidden" aria-label="Copia riepilogo">⧉</button>
+    <button id="headerCopyBtn" class="header-circle hidden" type="button" aria-label="Copia riepilogo" title="Riepilogo e copia">⧉</button>
   </header>
 
   <main>
     <section id="projectsView" class="view">
-      <div class="view-title">Gestione cantieri</div>
+      <div class="view-header-row">
+        <div class="view-title">Gestione cantieri</div>
+        <span id="projectsCountBadge" class="count-pill">0</span>
+      </div>
+      <div id="searchWrap" class="search-wrap hidden">
+        <input id="projectSearchInput" type="search" placeholder="Cerca cantiere..." autocomplete="off" />
+      </div>
       <div id="projectsList" class="card list"></div>
     </section>
 
     <section id="projectDetailView" class="view hidden">
       <div class="detail-header">
         <div class="detail-main">
-          <h2 id="projectNameTitle"></h2>
+          <div class="detail-title-row">
+            <h2 id="projectNameTitle"></h2>
+            <button id="renameProjectBtn" class="icon-btn" type="button" aria-label="Rinomina cantiere" title="Rinomina cantiere">✎</button>
+          </div>
           <div id="projectMeta" class="detail-subtitle"></div>
+        </div>
+        <div class="detail-tools">
+          <input id="itemFilterInput" class="item-filter-input" type="search" placeholder="Filtra voci o mostra solo > 0..." autocomplete="off" />
+          <button id="onlyActiveToggleBtn" class="chip-btn" type="button" title="Mostra solo elementi con quantità > 0">Solo inseriti</button>
         </div>
       </div>
 
       <div class="card card-flat">
         <div id="accordion" class="accordion">
           <div class="acc-item" data-section="frutti">
-            <button class="acc-toggle">
-              <span class="acc-label">Frutti</span>
+            <button class="acc-toggle" type="button">
+              <span class="acc-label-wrap">
+                <span class="acc-label">Frutti</span>
+                <span class="acc-badge hidden" id="badge-frutti">0</span>
+              </span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body" id="fruttiBody"></div>
           </div>
 
           <div class="acc-item" data-section="coperchi">
-            <button class="acc-toggle">
-              <span class="acc-label">Coperchi</span>
+            <button class="acc-toggle" type="button">
+              <span class="acc-label-wrap">
+                <span class="acc-label">Coperchi</span>
+                <span class="acc-badge hidden" id="badge-coperchi">0</span>
+              </span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body" id="coperchiBody"></div>
           </div>
 
           <div class="acc-item" data-section="spine">
-            <button class="acc-toggle">
-              <span class="acc-label">Spine</span>
+            <button class="acc-toggle" type="button">
+              <span class="acc-label-wrap">
+                <span class="acc-label">Spine</span>
+                <span class="acc-badge hidden" id="badge-spine">0</span>
+              </span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body" id="spineBody"></div>
           </div>
 
           <div class="acc-item" data-section="vario">
-            <button class="acc-toggle">
-              <span class="acc-label">Vario</span>
+            <button class="acc-toggle" type="button">
+              <span class="acc-label-wrap">
+                <span class="acc-label">Vario</span>
+                <span class="acc-badge hidden" id="badge-vario">0</span>
+              </span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body" id="varioBody"></div>
           </div>
 
           <div class="acc-item" data-section="linee">
-            <button class="acc-toggle">
-              <span class="acc-label">Linee</span>
+            <button class="acc-toggle" type="button">
+              <span class="acc-label-wrap">
+                <span class="acc-label">Linee</span>
+                <span class="acc-badge hidden" id="badge-linee">0</span>
+              </span>
               <span class="chevron">▾</span>
             </button>
             <div class="acc-body" id="lineeBody"></div>
@@ -86,50 +115,50 @@
     </section>
   </main>
 
-  <button id="addProjectBtn" class="fab">+</button>
+  <button id="addProjectBtn" class="fab" type="button" aria-label="Nuovo cantiere">+</button>
 
-  <!-- Modal: nuovo cantiere -->
-  <div id="modalOverlay" class="modal hidden">
+  <!-- Modal: nuovo cantiere / input testo generico -->
+  <div id="modalOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-card">
       <h3 id="modalTitle">Nuovo cantiere</h3>
-      <input id="modalInput" type="text" placeholder="Nome cantiere" />
+      <input id="modalInput" type="text" placeholder="Nome cantiere" autocomplete="off" />
       <div class="modal-actions">
-        <button id="modalCancel" class="btn secondary">Annulla</button>
-        <button id="modalOk" class="btn primary">OK</button>
+        <button id="modalCancel" class="btn secondary" type="button">Annulla</button>
+        <button id="modalOk" class="btn primary" type="button">OK</button>
       </div>
     </div>
   </div>
 
   <!-- Modal: aggiungi frutto/coperchio/spina -->
-  <div id="fruitModalOverlay" class="modal hidden">
+  <div id="fruitModalOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="fruitModalTitle">
     <div class="modal-card">
       <h3 id="fruitModalTitle">Aggiungi frutto</h3>
-      <input id="fruitModalInput" type="text" placeholder="Nome" />
+      <input id="fruitModalInput" type="text" placeholder="Nome" autocomplete="off" />
       <div class="modal-actions">
-        <button id="fruitModalCancel" class="btn secondary">Annulla</button>
-        <button id="fruitModalOk" class="btn primary">OK</button>
+        <button id="fruitModalCancel" class="btn secondary" type="button">Annulla</button>
+        <button id="fruitModalOk" class="btn primary" type="button">OK</button>
       </div>
     </div>
   </div>
 
   <!-- Modal: Derivazione PT -->
-  <div id="derivModalOverlay" class="modal hidden">
+  <div id="derivModalOverlay" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <h3>Derivazione PT</h3>
       <div class="deriv-spinner">
-        <button id="derivDown" class="deriv-arrow">˅</button>
+        <button id="derivDown" class="deriv-arrow" type="button" aria-label="Diminuisci">−</button>
         <div id="derivValue" class="deriv-value">4</div>
-        <button id="derivUp" class="deriv-arrow">˄</button>
+        <button id="derivUp" class="deriv-arrow" type="button" aria-label="Aumenta">+</button>
       </div>
       <div class="modal-actions">
-        <button id="derivCancel" class="btn secondary">Annulla</button>
-        <button id="derivOk" class="btn primary">Invia</button>
+        <button id="derivCancel" class="btn secondary" type="button">Annulla</button>
+        <button id="derivOk" class="btn primary" type="button">Aggiungi</button>
       </div>
     </div>
   </div>
 
   <!-- Modal: Partitore (radio in alto + spinner) -->
-  <div id="partModalOverlay" class="modal hidden">
+  <div id="partModalOverlay" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <h3>Nuovo partitore</h3>
 
@@ -146,26 +175,26 @@
       </div>
 
       <div class="deriv-spinner">
-        <button id="partDown" class="deriv-arrow">˅</button>
+        <button id="partDown" class="deriv-arrow" type="button" aria-label="Diminuisci">−</button>
         <div id="partValue" class="deriv-value">4</div>
-        <button id="partUp" class="deriv-arrow">˄</button>
+        <button id="partUp" class="deriv-arrow" type="button" aria-label="Aumenta">+</button>
       </div>
 
       <div class="modal-actions">
-        <button id="partCancel" class="btn secondary">Annulla</button>
-        <button id="partOk" class="btn primary">Aggiungi</button>
+        <button id="partCancel" class="btn secondary" type="button">Annulla</button>
+        <button id="partOk" class="btn primary" type="button">Aggiungi</button>
       </div>
     </div>
   </div>
 
   <!-- Modal: Aspiratore -->
-  <div id="aspirModalOverlay" class="modal hidden">
+  <div id="aspirModalOverlay" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <h3>Aggiungi Aspiratore</h3>
 
       <label class="aspir-row">
         <input type="checkbox" id="aspirTimer" />
-        <span>Timer</span>
+        <span>Con Timer</span>
       </label>
 
       <input
@@ -173,49 +202,68 @@
         class="aspir-input"
         type="text"
         inputmode="decimal"
-        placeholder="dimensione in cm"
+        placeholder="Dimensione in cm (es. 10)"
+        autocomplete="off"
       />
 
       <div class="modal-actions">
-        <button id="aspirCancel" class="btn secondary">Annulla</button>
-        <button id="aspirOk" class="btn primary" disabled>Aggiungi</button>
+        <button id="aspirCancel" class="btn secondary" type="button">Annulla</button>
+        <button id="aspirOk" class="btn primary" type="button">Aggiungi</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Copia riepilogo (checkbox + aggiungi altro) -->
-  <div id="copyModalOverlay" class="modal hidden">
+  <!-- Modal: Copia riepilogo (checkbox + aggiungi altro + anteprima) -->
+  <div id="copyModalOverlay" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
-      <h3>Copia riepilogo</h3>
+      <h3>Riepilogo cantiere</h3>
 
-      <label class="copy-row">
-        <input type="checkbox" id="copyCentralino" />
-        <span>Centralino</span>
-      </label>
-      <label class="copy-row">
-        <input type="checkbox" id="copyDymo" />
-        <span>Dymo</span>
-      </label>
-      <label class="copy-row">
-        <input type="checkbox" id="copyCitofono" />
-        <span>Citofono</span>
-      </label>
-      <label class="copy-row">
-        <input type="checkbox" id="copyMorsetti" />
-        <span>Morsetti</span>
-      </label>
+      <div class="copy-checks-title">Da ricordare / Altro:</div>
+      <div class="copy-checks-grid">
+        <label class="copy-row">
+          <input type="checkbox" id="copyCentralino" />
+          <span>Centralino</span>
+        </label>
+        <label class="copy-row">
+          <input type="checkbox" id="copyDymo" />
+          <span>Dymo</span>
+        </label>
+        <label class="copy-row">
+          <input type="checkbox" id="copyCitofono" />
+          <span>Citofono</span>
+        </label>
+        <label class="copy-row">
+          <input type="checkbox" id="copyMorsetti" />
+          <span>Morsetti</span>
+        </label>
+      </div>
 
       <div class="copy-extra">
-        <button id="copyAddExtraBtn" class="btn secondary" type="button">Aggiungi altro</button>
+        <div class="copy-extra-input-row">
+          <input id="copyExtraInlineInput" type="text" placeholder="Aggiungi voce extra..." autocomplete="off" />
+          <button id="copyAddExtraBtn" class="btn secondary small" type="button">+</button>
+        </div>
         <div id="copyExtraList"></div>
       </div>
 
+      <div class="copy-preview-wrap">
+        <div class="copy-checks-title">Anteprima testo:</div>
+        <pre id="copyPreviewBox" class="copy-preview"></pre>
+      </div>
+
       <div class="modal-actions">
-        <button id="copyCancel" class="btn secondary" type="button">Annulla</button>
+        <button id="copyCancel" class="btn secondary" type="button">Chiudi</button>
+        <button id="copyShareBtn" class="btn secondary hidden" type="button">Condividi</button>
         <button id="copyDoCopy" class="btn primary" type="button">Copia</button>
       </div>
     </div>
   </div>
+
+  <!-- Toast container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Screen peripheral flash overlay -->
+  <div id="screenFlash" class="screen-flash" aria-hidden="true"></div>
 
   <script src="app.js"></script>
   <script>
